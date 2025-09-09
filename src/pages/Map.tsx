@@ -31,7 +31,7 @@ const Map = () => {
   const cropTypes = ['Tomatoes', 'Cassava', 'Maize', 'Yam', 'Rice', 'Beans', 'Plantain', 'Sweet Potato'];
   
   const filteredAreas = cropAreas.filter(area => 
-    selectedCrop ? area.crop === selectedCrop : true
+    selectedCrop && selectedCrop !== 'all' ? area.crop === selectedCrop : true
   );
 
   const getSuitabilityColor = (suitability: string) => {
@@ -72,7 +72,7 @@ const Map = () => {
                   <SelectValue placeholder="Select a crop to search..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All crops</SelectItem>
+                  <SelectItem value="all">All crops</SelectItem>
                   {cropTypes.map((crop) => (
                     <SelectItem key={crop} value={crop}>
                       {crop}
@@ -124,7 +124,7 @@ const Map = () => {
       <Card>
         <CardHeader>
           <CardTitle>
-            {selectedCrop ? `${selectedCrop} Areas` : 'All Favorable Areas'} 
+            {selectedCrop && selectedCrop !== 'all' ? `${selectedCrop} Areas` : 'All Favorable Areas'}
             <Badge variant="outline" className="ml-2">
               {filteredAreas.length} found
             </Badge>
@@ -169,7 +169,7 @@ const Map = () => {
       </Card>
 
       {/* Alternative Suggestions */}
-      {selectedCrop && filteredAreas.length < 2 && (
+      {selectedCrop && selectedCrop !== 'all' && filteredAreas.length < 2 && (
         <Card>
           <CardHeader>
             <CardTitle>Alternative Crop Suggestions</CardTitle>
