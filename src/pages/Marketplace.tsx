@@ -77,7 +77,7 @@ const Marketplace = () => {
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCrop, setFilterCrop] = useState('');
+  const [filterCrop, setFilterCrop] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const cropTypes = ['Tomatoes', 'Cassava', 'Maize', 'Yam', 'Rice', 'Beans', 'Plantain'];
@@ -85,7 +85,7 @@ const Marketplace = () => {
   const filteredListings = listings.filter(listing => {
     const matchesSearch = listing.crop.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          listing.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCrop = !filterCrop || listing.crop === filterCrop;
+    const matchesCrop = filterCrop === 'all' || listing.crop === filterCrop;
     return matchesSearch && matchesCrop;
   });
 
@@ -243,7 +243,7 @@ const Marketplace = () => {
                   <SelectValue placeholder="All crops" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All crops</SelectItem>
+                  <SelectItem value="all">All crops</SelectItem>
                   {cropTypes.map((crop) => (
                     <SelectItem key={crop} value={crop}>
                       {crop}
