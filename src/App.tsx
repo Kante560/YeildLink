@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import Layout from "./components/Layout";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
@@ -11,50 +12,90 @@ import Crops from "./pages/Crops";
 import Map from "./pages/Map";
 import Marketplace from "./pages/Marketplace";
 import Profile from "./pages/Profile";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
+import PrivateRoute from "./Route/PrivateRoute";
+
+import { AuthProvider } from "./AuthContext/AuthContext"; // fixed import path
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<Landing />} />
-          <Route path="/dashboard" element={
-            <Layout>
-              <Dashboard />
-            </Layout>
-          } />
-          <Route path="/crops" element={
-            <Layout>
-              <Crops />
-            </Layout>
-          } />
-          <Route path="/map" element={
-            <Layout>
-              <Map />
-            </Layout>
-          } />
-          <Route path="/marketplace" element={
-            <Layout>
-              <Marketplace />
-            </Layout>
-          } />
-          <Route path="/profile" element={
-            <Layout>
-              <Profile />
-            </Layout>
-          } />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <BrowserRouter>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/terms" element={
+              <Layout>
+              <Terms />
+              </Layout>} />
+
+            {/* Protected Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/crops"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Crops />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/map"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Map />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/marketplace"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Marketplace />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Profile />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+        
+
+           
+          </Routes>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AuthProvider>
+  </BrowserRouter>
 );
 
 export default App;

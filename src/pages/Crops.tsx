@@ -82,6 +82,56 @@ const Crops = () => {
         </Button>
       </div>
 
+      
+
+      {/* Seasonal Status Overview with Backdrop */}
+      <div
+        className="relative rounded-xl overflow-hidden mb-8"
+        style={{
+          backgroundImage: `url('/oss/Farm5.jpeg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '120px',
+        }}
+      >
+        <div className="relative z-10 grid gap-4 md:grid-cols-3 p-6">
+          <Card className="bg-user-dashboard  backdrop-blur-sm shadow-none ">
+            <CardContent className="p-6 text-center">
+              <div className="w-8 h-8 bg-success rounded-full mx-auto mb-2 flex items-center justify-center">
+                <CheckCircle size={24} className="text-success-foreground" />
+              </div>
+              <h3 className="font-semibold text-success">Crops in favorable season:</h3>
+              <p className="text-2xl font-bold text-success">
+                {myCrops.filter(c => c.status === 'favorable').length}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-user-dashboard backdrop-blur-sm shadow-none">
+            <CardContent className="p-6 text-center">
+              <div className="w-8 h-8 bg-warning rounded-full mx-auto mb-2 flex items-center justify-center">
+                <Clock size={24} className="text-warning-foreground" />
+              </div>
+              <h3 className="font-semibold text-warning">Crops in ending season:</h3>
+              <p className="text-2xl font-bold text-warning">
+                {myCrops.filter(c => c.status === 'transitional').length}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-user-dashboard backdrop-blur-sm shadow-none">
+            <CardContent className="p-6 text-center">
+              <div className="w-8 h-8 bg-destructive rounded-full mx-auto mb-2 flex items-center justify-center">
+                <AlertTriangle size={24} className="text-destructive-foreground" />
+              </div>
+              <h3 className="font-semibold text-destructive">Crops in past season:</h3>
+              <p className="text-2xl font-bold text-destructive">
+                {myCrops.filter(c => c.status === 'unfavorable').length}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+
       {/* Add Crop Form */}
       {isAddingCrop && (
         <Card>
@@ -122,44 +172,6 @@ const Crops = () => {
         </Card>
       )}
 
-      {/* Seasonal Status Overview */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="w-8 h-8 bg-success rounded-full mx-auto mb-2 flex items-center justify-center">
-              <CheckCircle size={20} className="text-success-foreground" />
-            </div>
-            <h3 className="font-semibold">Favorable</h3>
-            <p className="text-2xl font-bold text-success">
-              {myCrops.filter(c => c.status === 'favorable').length}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="w-8 h-8 bg-warning rounded-full mx-auto mb-2 flex items-center justify-center">
-              <Clock size={20} className="text-warning-foreground" />
-            </div>
-            <h3 className="font-semibold">Transitional</h3>
-            <p className="text-2xl font-bold text-warning">
-              {myCrops.filter(c => c.status === 'transitional').length}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="w-8 h-8 bg-destructive rounded-full mx-auto mb-2 flex items-center justify-center">
-              <AlertTriangle size={20} className="text-destructive-foreground" />
-            </div>
-            <h3 className="font-semibold">Out of Season</h3>
-            <p className="text-2xl font-bold text-destructive">
-              {myCrops.filter(c => c.status === 'unfavorable').length}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Crop List */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -205,6 +217,7 @@ const Crops = () => {
           );
         })}
       </div>
+      
 
       {myCrops.length === 0 && (
         <Card>

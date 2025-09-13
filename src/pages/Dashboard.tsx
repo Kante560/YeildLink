@@ -1,9 +1,13 @@
 import React from 'react';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sprout, AlertCircle, TrendingUp, MapPin, ShoppingCart, Cloud } from 'lucide-react';
 import heroImage from '@/assets/hero-farming.jpg';
+import { useAuth } from '@/AuthContext/AuthContext';
+
+
 
 const Dashboard = () => {
   const recommendedCrops = [
@@ -27,19 +31,25 @@ const Dashboard = () => {
     },
   ];
 
+  const { user } = useAuth();
+
   return (
     <div className="p-6 space-y-8">
       {/* Hero Section */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-hero">
         <div className="absolute inset-0">
           <img 
-            src={heroImage} 
+            src={"/oss/Farm5.jpeg"} 
             alt="Smart farming technology" 
             className="w-full h-full object-cover opacity-20"
           />
         </div>
         <div className="relative p-8 text-primary-foreground">
-          <h1 className="text-3xl font-bold mb-2">Hello Ada! 👋</h1>
+          {/* Sidebar trigger icon for mobile/desktop */}
+          <div className="absolute left-4 top-4 z-20 md:hidden">
+            <SidebarTrigger />
+          </div>
+          <h1 className="text-3xl font-bold mb-2">Hello {user?.name || 'Farmer'}! 👋</h1>
           <p className="text-lg opacity-90 mb-6">
             Here's today's crop insights for your region
           </p>
@@ -112,38 +122,7 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardContent className="p-6 text-center">
-            <Sprout className="mx-auto mb-4 text-primary" size={32} />
-            <h3 className="font-semibold mb-2">Crop Management</h3>
-            <p className="text-sm text-muted-foreground">
-              Track your crops and seasonal status
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardContent className="p-6 text-center">
-            <MapPin className="mx-auto mb-4 text-primary" size={32} />
-            <h3 className="font-semibold mb-2">Find on Map</h3>
-            <p className="text-sm text-muted-foreground">
-              Discover crop opportunities nearby
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardContent className="p-6 text-center">
-            <ShoppingCart className="mx-auto mb-4 text-primary" size={32} />
-            <h3 className="font-semibold mb-2">Marketplace</h3>
-            <p className="text-sm text-muted-foreground">
-              Buy and sell surplus crops
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      
     </div>
   );
 };

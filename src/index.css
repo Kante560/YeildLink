@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -115,6 +116,10 @@ All colors MUST be HSL.
   }
 
   body {
+    font-family: 'Montserrat', sans-serif;
     @apply bg-background text-foreground;
   }
+}
+.bg-user-dashboard {
+  background-image: linear-gradient(to top, hsl(0, 0%, 100%, 0.85) 0%, hsla(0, 0%, 100%, 0.05) 100%);
 }

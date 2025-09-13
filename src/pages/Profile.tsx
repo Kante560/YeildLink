@@ -229,19 +229,7 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          {/* Logout */}
-          <Card>
-            <CardContent className="pt-6">
-              <Button 
-                variant="outline" 
-                className="w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 w-4 h-4" />
-                Logout
-              </Button>
-            </CardContent>
-          </Card>
+          
         </div>
       </div>
     </div>
