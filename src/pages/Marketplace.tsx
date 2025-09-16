@@ -1,397 +1,98 @@
-// import React, { useState } from 'react';
-// import {
-//   Card, CardContent
-// } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
-// import { Label } from '@/components/ui/label';
-// import {
-//   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-// } from '@/components/ui/select';
-// import {
-//   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger
-// } from '@/components/ui/dialog';
-// import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-// import { Textarea } from '@/components/ui/textarea';
-// import {
-//   Plus, Phone, Mail, Search, Clock, Star
-// } from 'lucide-react';
-// import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-// import { toast } from '@/hooks/use-toast';
-
-// interface Listing {
-//   id: string;
-//   crop: string;
-//   location: string;
-//   quantity: string;
-//   contact: string;
-//   postedBy: string;
-//   postedDate: string;
-//   distance: string;
-//   price?: string;
-//   description?: string;
-//   rating: number;
-//   verified: boolean;
-//   urgency: 'low' | 'medium' | 'high';
-// }
-
-// const Marketplace = () => {
-//   const [tab, setTab] = useState('market');
-//   const [listings, setListings] = useState<Listing[]>([
-//     {
-//       id: '1',
-//       crop: 'Tomatoes',
-//       location: 'Kaduna, Nigeria',
-//       quantity: '500kg',
-//       contact: '+234 803 XXX XXXX',
-//       postedBy: 'John Farmer',
-//       postedDate: '2 days ago',
-//       distance: '15km away',
-//       price: '₦800/kg',
-//       description: 'Fresh organic tomatoes, perfect for processing. Harvested yesterday.',
-//       rating: 4.8,
-//       verified: true,
-//       urgency: 'medium'
-//     },
-//     {
-//       id: '2',
-//       crop: 'Cassava',
-//       location: 'Kano, Nigeria',
-//       quantity: '2 tons',
-//       contact: '+234 805 XXX XXXX',
-//       postedBy: 'Amina Cooperative',
-//       postedDate: '1 week ago',
-//       distance: '45km away',
-//       price: '₦200/kg',
-//       description: 'High-quality cassava roots. Suitable for garri production.',
-//       rating: 4.5,
-//       verified: true,
-//       urgency: 'low'
-//     },
-//     {
-//       id: '3',
-//       crop: 'Maize',
-//       location: 'Jos, Nigeria',
-//       quantity: '1 ton',
-//       contact: '+234 807 XXX XXXX',
-//       postedBy: 'Farm Fresh Ltd',
-//       postedDate: '3 days ago',
-//       distance: '28km away',
-//       price: '₦350/kg',
-//       description: 'Dry yellow maize, ideal for feed production. Must sell urgently.',
-//       rating: 4.2,
-//       verified: false,
-//       urgency: 'high'
-//     }
-//   ]);
-
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [filterCrop, setFilterCrop] = useState('all');
-//   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-//   const cropTypes = ['Tomatoes', 'Cassava', 'Maize', 'Yam', 'Rice', 'Beans', 'Plantain'];
-
-//   const filteredListings = listings.filter(listing => {
-//     const matchesSearch =
-//       listing.crop.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//       listing.location.toLowerCase().includes(searchTerm.toLowerCase());
-//     const matchesCrop = filterCrop === 'all' || listing.crop === filterCrop;
-//     return matchesSearch && matchesCrop;
-//   });
-
-//   const myListings = listings.filter((_, idx) => idx === 1); // placeholder: replace with real user logic
-
-//   const handleAddListing = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setIsDialogOpen(false);
-//     toast({
-//       title: 'Listing Added',
-//       description: 'Your crop listing has been posted successfully.',
-//     });
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-50">
-//       <div className="max-w-7xl mx-auto p-6 space-y-10">
-
-//         {/* Top Tabs Section */}
-//         <Tabs defaultValue="market" value={tab} onValueChange={setTab}>
-//           <TabsList className="rounded-full bg-gray-100 p-1 w-fit mx-auto">
-//             <TabsTrigger
-//               value="market"
-//               className="rounded-full px-4 py-2 data-[state=active]:bg-green-600 data-[state=active]:text-white"
-//             >
-//               Market Listing
-//             </TabsTrigger>
-//             <TabsTrigger
-//               value="my"
-//               className="rounded-full px-4 py-2 data-[state=active]:bg-green-600 data-[state=active]:text-white"
-//             >
-//               My Listing
-//             </TabsTrigger>
-//           </TabsList>
-
-//           {/* Market Listing Tab */}
-//           <TabsContent value="market" className="mt-10 space-y-8">
-            
-//             {/* Search & Filter */}
-//             <Card>
-//               <CardContent className="p-6 flex flex-col md:flex-row gap-6">
-//                 <div className="flex-1">
-//                   <Label>Search</Label>
-//                   <div className="relative mt-1">
-//                     <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-//                     <Input
-//                       placeholder="Search crops or location..."
-//                       value={searchTerm}
-//                       onChange={e => setSearchTerm(e.target.value)}
-//                       className="pl-10"
-//                     />
-//                   </div>
-//                 </div>
-//                 <div className="min-w-[180px]">
-//                   <Label>Filter by Crop</Label>
-//                   <Select value={filterCrop} onValueChange={setFilterCrop}>
-//                     <SelectTrigger className="mt-1">
-//                       <SelectValue placeholder="All crops" />
-//                     </SelectTrigger>
-//                     <SelectContent>
-//                       <SelectItem value="all">All crops</SelectItem>
-//                       {cropTypes.map(crop => (
-//                         <SelectItem key={crop} value={crop}>{crop}</SelectItem>
-//                       ))}
-//                     </SelectContent>
-//                   </Select>
-//                 </div>
-//                 <div className="flex items-end">
-//                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-//                     <DialogTrigger asChild>
-//                       <Button className="bg-green-600 hover:bg-green-700">
-//                         <Plus className="mr-2 w-4 h-4" /> Add Listing
-//                       </Button>
-//                     </DialogTrigger>
-//                     <DialogContent className="max-w-2xl">
-//                       <DialogHeader>
-//                         <DialogTitle className="text-2xl">Create New Listing</DialogTitle>
-//                         <DialogDescription>
-//                           Share your surplus crops with the community
-//                         </DialogDescription>
-//                       </DialogHeader>
-                      
-//                       {/* Preserve your existing modal form */}
-//                       <form onSubmit={handleAddListing} className="space-y-4">
-//                         <div className="grid grid-cols-2 gap-4">
-//                           <div>
-//                             <Label htmlFor="crop">Crop Type*</Label>
-//                             <Select required>
-//                               <SelectTrigger>
-//                                 <SelectValue placeholder="Select crop type..." />
-//                               </SelectTrigger>
-//                               <SelectContent>
-//                                 {cropTypes.map(crop => (
-//                                   <SelectItem key={crop} value={crop}>{crop}</SelectItem>
-//                                 ))}
-//                               </SelectContent>
-//                             </Select>
-//                           </div>
-//                           <div>
-//                             <Label htmlFor="quantity">Quantity*</Label>
-//                             <Input id="quantity" placeholder="e.g., 500kg, 2 tons" required />
-//                           </div>
-//                         </div>
-//                         <div className="grid grid-cols-2 gap-4">
-//                           <div>
-//                             <Label htmlFor="price">Price (optional)</Label>
-//                             <Input id="price" placeholder="e.g., ₦800/kg" />
-//                           </div>
-//                           <div>
-//                             <Label htmlFor="urgency">Priority</Label>
-//                             <Select defaultValue="medium">
-//                               <SelectTrigger>
-//                                 <SelectValue />
-//                               </SelectTrigger>
-//                               <SelectContent>
-//                                 <SelectItem value="low">Low Priority</SelectItem>
-//                                 <SelectItem value="medium">Medium Priority</SelectItem>
-//                                 <SelectItem value="high">High Priority</SelectItem>
-//                               </SelectContent>
-//                             </Select>
-//                           </div>
-//                         </div>
-//                         <div>
-//                           <Label htmlFor="description">Description (optional)</Label>
-//                           <Textarea id="description" rows={3} />
-//                         </div>
-//                         <div>
-//                           <Label htmlFor="location">Location*</Label>
-//                           <Input id="location" defaultValue="Kaduna, Nigeria" required />
-//                         </div>
-//                         <div>
-//                           <Label htmlFor="contact">Contact*</Label>
-//                           <Input id="contact" placeholder="Phone number or email" required />
-//                         </div>
-//                         <div className="flex gap-3 pt-4">
-//                           <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700">
-//                             <Plus className="mr-2 w-4 h-4" />
-//                             Post Listing
-//                           </Button>
-//                           <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-//                             Cancel
-//                           </Button>
-//                         </div>
-//                       </form>
-//                     </DialogContent>
-//                   </Dialog>
-//                 </div>
-//               </CardContent>
-//             </Card>
-
-//             {/* Listings */}
-//             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-//               {filteredListings.map((listing, idx) => (
-//                 <Card key={listing.id} className="rounded-xl shadow-sm hover:shadow-md transition">
-//                   <CardContent className="p-5 flex flex-col h-full">
-//                     <div className="flex justify-between items-start mb-2">
-//                       <div>
-//                         <h3 className="text-lg font-semibold text-gray-900">{listing.crop}</h3>
-//                         <p className="text-sm text-gray-600">{listing.location}</p>
-//                       </div>
-//                       {listing.price && (
-//                         <span className="text-green-600 font-semibold">{listing.price}</span>
-//                       )}
-//                     </div>
-//                     <p className="text-gray-700 text-sm flex-1 mb-3">
-//                       {listing.description}
-//                     </p>
-//                     <div className="flex items-center justify-between text-sm mb-3">
-//                       <div className="flex items-center gap-1">
-//                         <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-//                         <span>{listing.rating}</span>
-//                       </div>
-//                       <div className="flex items-center gap-2">
-//                         <Avatar className="w-7 h-7">
-//                           <AvatarFallback>
-//                             {listing.postedBy.split(' ').map(n => n[0]).join('')}
-//                           </AvatarFallback>
-//                         </Avatar>
-//                         <span>{listing.postedBy}</span>
-//                       </div>
-//                     </div>
-//                     <div className="flex gap-2 mt-auto">
-//                       <Button
-//                         size="sm"
-//                         className="flex-1 bg-green-600 hover:bg-green-700"
-//                         onClick={() =>
-//                           toast({ title: 'Contact Info', description: listing.contact })
-//                         }
-//                       >
-//                         <Phone className="w-4 h-4 mr-2" /> Contact
-//                       </Button>
-//                       <Button
-//                         size="sm"
-//                         variant="outline"
-//                         onClick={() =>
-//                           toast({
-//                             title: 'Coming Soon',
-//                             description: 'Messaging will be available soon!',
-//                           })
-//                         }
-//                       >
-//                         <Mail className="w-4 h-4" />
-//                       </Button>
-//                     </div>
-//                   </CardContent>
-//                 </Card>
-//               ))}
-//             </div>
-//           </TabsContent>
-
-//           {/* My Listing Tab */}
-//           <TabsContent value="my" className="mt-10 space-y-8">
-//             {myListings.length > 0 ? (
-//               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-//                 {myListings.map(listing => (
-//                   <Card key={listing.id} className="rounded-xl shadow-sm">
-//                     <CardContent className="p-5 flex flex-col h-full">
-//                       <h3 className="text-lg font-semibold">{listing.crop}</h3>
-//                       <p className="text-sm text-gray-600">{listing.location}</p>
-//                       <p className="text-sm mt-2 flex-1">{listing.description}</p>
-//                       <div className="flex gap-2 mt-auto">
-//                         <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700">
-//                           Edit
-//                         </Button>
-//                         <Button size="sm" variant="outline" className="text-red-600 border-red-600">
-//                           Delete
-//                         </Button>
-//                       </div>
-//                     </CardContent>
-//                   </Card>
-//                 ))}
-//               </div>
-//             ) : (
-//               <Card>
-//                 <CardContent className="p-12 text-center text-gray-500">
-//                   <h3 className="text-lg font-semibold">You have no listings yet</h3>
-//                   <p className="mb-4">Click "Add Listing" in Market tab to get started</p>
-//                 </CardContent>
-//               </Card>
-//             )}
-//           </TabsContent>
-//         </Tabs>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Marketplace;
 
 
-import { useState } from "react"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Search, Phone, Mail, Star } from "lucide-react"
+import { Search, Phone, Mail, Star, Trash2 } from "lucide-react"
+import { getMarketplaceListings, addMarketplaceListing, deleteMarketplaceListing, updateMarketplaceListing, type MarketplaceItem } from "@/services/cropService"
+import { useAuth } from "@/AuthContext/AuthContext"
 
 export default function MarketPage() {
   const [tab, setTab] = useState("market")
+  const { user } = useAuth()
 
-  const listings = [
-    {
-      crop: "Cassava",
-      price: "₦200/kg",
-      rating: 4.5,
-      location: "Kano, Nigeria",
-      quantity: "2 tons",
-      desc: "High-quality cassava roots. Suitable for garri production.",
-      user: "Fortune Okeke",
-      time: "1 week ago",
-      type: "my"
-    },
-    {
-      crop: "Tomatoes",
-      price: "₦800/kg",
-      rating: 4.8,
-      location: "Kaduna, Nigeria",
-      quantity: "500kg",
-      desc: "Fresh organic tomatoes, perfect for processing. Harvested yesterday.",
-      user: "John (Farmer)",
-      time: "2 days ago",
-      type: "market"
-    },
-    {
-      crop: "Maize",
-      price: "₦350/kg",
-      rating: 4.2,
-      location: "Jos, Nigeria",
-      quantity: "1 ton",
-      desc: "Dry yellow maize, ideal for feed production. Must sell urgently.",
-      user: "Farm Fresh Ltd",
-      time: "3 days ago",
-      type: "market"
+  const [items, setItems] = useState<MarketplaceItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [cropFilter, setCropFilter] = useState<string | undefined>(undefined)
+  const [locationFilter, setLocationFilter] = useState<string | undefined>(undefined)
+  const [creating, setCreating] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editItem, setEditItem] = useState<MarketplaceItem | null>(null)
+  const [editCropName, setEditCropName] = useState("")
+  const [editLocation, setEditLocation] = useState("")
+  const [editQuantity, setEditQuantity] = useState("")
+  const [editContact, setEditContact] = useState("")
+  // Add-listing form state
+  const [newCropName, setNewCropName] = useState<string>("")
+  const [newLocation, setNewLocation] = useState<string>("")
+  const [newQuantity, setNewQuantity] = useState<string>("")
+  const [newPhone, setNewPhone] = useState<string>("")
+  const [newEmail, setNewEmail] = useState<string>("")
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await getMarketplaceListings()
+        setItems(data)
+      } catch (e: any) {
+        setError(e?.message ?? "Failed to load listings")
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    load()
+  }, [])
+
+  const toTitle = (val?: string) => (val ? val.charAt(0).toUpperCase() + val.slice(1) : undefined)
+
+  const handleSearch = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await getMarketplaceListings({
+        cropName: toTitle(cropFilter),
+        location: locationFilter
+          ? locationFilter
+              .split(" ")
+              .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+              .join(" ")
+          : undefined,
+      })
+      setItems(data)
+    } catch (e: any) {
+      setError(e?.message ?? "Search failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleContact = (contact?: string) => {
+    if (!contact) {
+      window.alert("No contact provided")
+      return
+    }
+    const trimmed = contact.trim()
+    const isEmail = /@/.test(trimmed)
+    const numeric = trimmed.replace(/[^+\d]/g, "")
+    const isPhone = /^\+?\d{6,}$/.test(numeric)
+    if (isPhone) {
+      window.location.href = `tel:${numeric}`
+      return
+    }
+    if (isEmail) {
+      window.location.href = `mailto:${trimmed}`
+      return
+    }
+    window.alert(trimmed)
+  }
 
   return (
     <div className="p-6 w-full">
@@ -424,12 +125,35 @@ export default function MarketPage() {
           >
             <form
               className="bg-white rounded-lg shadow-lg p-6 space-y-6"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault()
-                // replace with real submit logic
-                alert('Listing added')
-                ;(document.getElementById('addListingDialog') as HTMLDialogElement | null)
-                  ?.close()
+                const contact = newPhone.trim() || newEmail.trim()
+                if (!newCropName || !newLocation || !newQuantity || !contact) {
+                  alert('Please fill all required fields')
+                  return
+                }
+                try {
+                  setCreating(true)
+                  await addMarketplaceListing({
+                    cropName: newCropName,
+                    location: newLocation,
+                    quantity: newQuantity,
+                    contact,
+                  })
+                  const data = await getMarketplaceListings()
+                  setItems(data)
+                  ;(document.getElementById('addListingDialog') as HTMLDialogElement | null)?.close()
+                  // reset form
+                  setNewCropName("")
+                  setNewLocation("")
+                  setNewQuantity("")
+                  setNewPhone("")
+                  setNewEmail("")
+                } catch (err: any) {
+                  alert(err?.message ?? 'Failed to add listing')
+                } finally {
+                  setCreating(false)
+                }
               }}
             >
               {/* Header */}
@@ -456,21 +180,14 @@ export default function MarketPage() {
                   <label className="block text-sm font-medium mb-2" htmlFor="crop">
                     Crop type
                   </label>
-                  <Select>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select crop type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Tomatoes">Tomatoes</SelectItem>
-                      <SelectItem value="Cassava">Cassava</SelectItem>
-                      <SelectItem value="Maize">Maize</SelectItem>
-                      <SelectItem value="Yam">Yam</SelectItem>
-                      <SelectItem value="Rice">Rice</SelectItem>
-                      <SelectItem value="Beans">Beans</SelectItem>
-                      <SelectItem value="Plantain">Plantain</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                  id="crop"
+                  placeholder="Enter crop type"
+                  value={newCropName}
+                  onChange={(e) => setNewCropName(e.target.value)}
+                  />
                 </div>
+                
 
                 <div>
                   <label className="block text-sm font-medium mb-2" htmlFor="price">
@@ -485,23 +202,19 @@ export default function MarketPage() {
                   <label className="block text-sm font-medium mb-2" htmlFor="location">
                     Location
                   </label>
-                  <Select>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Kaduna, Nigeria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="kaduna">Kaduna, Nigeria</SelectItem>
-                      <SelectItem value="kano">Kano, Nigeria</SelectItem>
-                      <SelectItem value="jos">Jos, Nigeria</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                  id="location"
+                  placeholder="Enter location"
+                  value={newLocation}
+                  onChange={(e) => setNewLocation(e.target.value)}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2" htmlFor="quantity">
                     Quantity
                   </label>
-                  <Input id="quantity" placeholder="e.g., 500kg, 2 tons" />
+                  <Input id="quantity" placeholder="e.g., 500kg, 2 tons" value={newQuantity} onChange={(e) => setNewQuantity(e.target.value)} />
                 </div>
               </div>
 
@@ -510,14 +223,14 @@ export default function MarketPage() {
                   <label className="block text-sm font-medium mb-2" htmlFor="phone">
                     Phone Number
                   </label>
-                  <Input id="phone" placeholder="Enter your phone number" />
+                  <Input id="phone" placeholder="Enter your phone number" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2" htmlFor="email">
                     Email
                   </label>
-                  <Input id="email" placeholder="Enter your email" />
+                  <Input id="email" placeholder="Enter your email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
                 </div>
               </div>
 
@@ -537,9 +250,10 @@ export default function MarketPage() {
               <div className="space-y-2">
                 <button
                   type="submit"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 font-medium"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 font-medium disabled:opacity-60"
+                  disabled={creating}
                 >
-                  Post Listing
+                  {creating ? 'Posting...' : 'Post Listing'}
                 </button>
 
                 <button
@@ -558,78 +272,197 @@ export default function MarketPage() {
         </>
       </div>
 
+      {/* Edit Listing Modal */}
+      {editOpen && (
+        <dialog id="editListingDialog" open className="rounded-lg p-0 w-full max-w-2xl">
+          <form
+            className="bg-white rounded-lg shadow-lg p-6 space-y-6"
+            onSubmit={async (e) => {
+              e.preventDefault()
+              if (!editItem) return
+              try {
+                setEditing(true)
+                await updateMarketplaceListing(editItem.id, {
+                  cropName: editCropName,
+                  location: editLocation,
+                  quantity: editQuantity,
+                  contact: editContact,
+                })
+                const data = await getMarketplaceListings()
+                setItems(data)
+                setEditOpen(false)
+              } catch (err: any) {
+                alert(err?.message ?? 'Failed to update listing')
+              } finally {
+                setEditing(false)
+              }
+            }}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-2xl font-semibold">Edit Listing</h3>
+                <p className="text-sm text-gray-500">Share your surplus crops with the community and connect with potential buyers</p>
+              </div>
+              <button type="button" className="text-gray-500 hover:text-gray-700" onClick={() => setEditOpen(false)}>✕</button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="editCrop">Crop type</label>
+                <Input id="editCrop" placeholder="e.g Maize" value={editCropName} onChange={(e) => setEditCropName(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="editPrice">Price</label>
+                <Input id="editPrice" placeholder="e.g N800/kg" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="editLocation">Location</label>
+                <Input id="editLocation" placeholder="Kaduna, Nigeria" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="editQuantity">Quantity</label>
+                <Input id="editQuantity" placeholder="e.g 500kg, 2 tons" value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="editPhone">Phone Number</label>
+                <Input id="editPhone" placeholder="Enter your phone number" value={editContact} onChange={(e) => setEditContact(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="editEmail">Email</label>
+                <Input id="editEmail" placeholder="Enter your email" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2" htmlFor="editDescription">Description (optional)</label>
+              <textarea id="editDescription" rows={4} className="w-full border rounded px-3 py-2 text-sm bg-gray-50" placeholder="Describe your crop quality, harvesting date, or other special conditions..." />
+            </div>
+
+            <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 font-medium disabled:opacity-60" disabled={editing}>
+              {editing ? 'Saving...' : 'Edit Listing'}
+            </button>
+          </form>
+        </dialog>
+      )}
+
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 items-center bg-white shadow-sm rounded-lg p-4 mb-6">
-        <Select>
+        <Select onValueChange={setCropFilter} value={cropFilter}>
           <SelectTrigger className="w-[250px]">
             <SelectValue placeholder="Select crop to search" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="cassava">Cassava</SelectItem>
-            <SelectItem value="tomatoes">Tomatoes</SelectItem>
-            <SelectItem value="maize">Maize</SelectItem>
+            <SelectItem value="Cassava">Cassava</SelectItem>
+            <SelectItem value="Tomatoes">Tomatoes</SelectItem>
+            <SelectItem value="Maize">Maize</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select>
+        <Select onValueChange={setLocationFilter} value={locationFilter}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Filter by location" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="crossriver">Cross River</SelectItem>
-            <SelectItem value="kaduna">Kaduna</SelectItem>
-            <SelectItem value="jos">Jos</SelectItem>
+            <SelectItem value="Cross River">Cross River</SelectItem>
+            <SelectItem value="Kaduna">Kaduna</SelectItem>
+            <SelectItem value="Jos">Jos</SelectItem>
           </SelectContent>
         </Select>
 
-        <Button variant="outline" className="flex items-center gap-2">
-          <Search size={18} /> Search
+        <Button variant="outline" className="flex items-center gap-2" onClick={handleSearch} disabled={loading}>
+          <Search size={18} /> {loading ? "Searching..." : "Search"}
         </Button>
       </div>
 
       {/* Listings */}
-      <div className="grid md:grid-cols-3 gap-6">
-        {listings
-          .filter((item) => tab === "market" ? item.type !== "my" : item.type === "my")
-          .map((item, idx) => (
-          <Card key={idx} className="rounded-2xl shadow-md">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                  <span className="w-7 h-7 flex items-center justify-center rounded-full bg-green-100 text-green-700 font-bold">
-                    {item.crop[0]}
+      <div className="grid md:grid-cols-3 gap-4">
+        {error && (
+          <div className="col-span-full text-red-600 text-sm">{error}</div>
+        )}
+        {items.length === 0 && !loading && !error && (
+          <div className="col-span-full text-gray-500 text-sm">No listings found.</div>
+        )}
+        {items.map((item) => {
+          const isMine = item.userId != null && user?.id != null && String(item.userId) === String(user.id)
+          return (
+          <Card key={item.id} className="rounded-xl border shadow-sm hover:shadow-md transition">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-1">
+                <h3 className="font-semibold text-base flex items-center gap-2">
+                  <span className="w-7 h-7 flex items-center justify-center rounded-full bg-green-100 text-green-700 font-semibold">
+                    {item.cropName?.[0] ?? "?"}
                   </span>
-                  {item.crop}
+                  {item.cropName}
                 </h3>
-                <span className="flex items-center gap-1 text-yellow-500 font-medium">
-                  <Star size={16} className="fill-yellow-500" /> {item.rating}
-                </span>
+                
               </div>
 
-              <p className="text-green-600 font-semibold mb-2">{item.price}</p>
-              <p className="text-sm"><b>Location:</b> {item.location}</p>
-              <p className="text-sm"><b>Quantity:</b> {item.quantity}</p>
-              <p className="text-gray-600 text-sm mt-2">{item.desc}</p>
+              {/* Price badge placeholder (if you add price later) */}
+              {/* <p className="text-green-700 bg-green-50 inline-block px-2 py-0.5 rounded text-xs font-medium mb-1">₦200/kg</p> */}
 
-              {/* User Info */}
-              <div className="flex items-center justify-between text-sm text-gray-500 mt-4">
-                <span>{item.user}</span>
-                <span>{item.time}</span>
+              <div className="space-y-2">
+                {item.location && (
+                  <p className="text-[13px] px-2 py-1 bg-gray-50 rounded mb-1">
+                    <b>Location:</b> {item.location}
+                  </p>
+                )}
+                {item.quantity && (
+                  <p className="text-[13px] px-2 py-1 bg-gray-50 rounded mb-1">
+                    <b>Quantity:</b> {item.quantity}
+                  </p>
+                )}
+                {/* Contact is intentionally hidden for cleaner UX; use the Contact button below */}
+              </div>
+
+              {/* Meta */}
+              <div className="flex items-center justify-between text-xs text-gray-500 mt-4 pt-2 border-t">
+                <span>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ""}</span>
+                <span className="text-gray-400">#{item.id}</span>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-2 mt-4">
-                {item.type === "my" ? (
+              <div className="flex gap-2 mt-3">
+                {isMine ? (
                   <>
-                    <Button className="bg-green-600 hover:bg-green-700 flex-1">Edit</Button>
-                    <Button variant="outline" className="flex-1">🗑</Button>
+                    <Button className="bg-green-600 hover:bg-green-700 flex-1 rounded-full py-2" onClick={() => {
+                      setEditItem(item)
+                      setEditCropName(item.cropName || "")
+                      setEditLocation(item.location || "")
+                      setEditQuantity(item.quantity || "")
+                      setEditContact(item.contact || "")
+                      setEditOpen(true)
+                    }}>
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-full"
+                      onClick={async () => {
+                        if (!window.confirm("Are you sure you want to delete this listing?")) return;
+                        try {
+                          await deleteMarketplaceListing(item.id);
+                          const data = await getMarketplaceListings();
+                          setItems(data);
+                        } catch (err: any) {
+                          alert(err?.message ?? "Failed to delete listing");
+                        }
+                      }}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
                   </>
                 ) : (
                   <>
-                    <Button className="bg-green-600 hover:bg-green-700 flex-1 flex items-center gap-2">
+                    <Button className="bg-green-600 hover:bg-green-700 flex-1 flex items-center gap-2 rounded-full py-2" onClick={() => handleContact(item.contact)}>
                       <Phone size={16}/> Contact
                     </Button>
-                    <Button variant="outline" className="flex-1 flex items-center gap-2">
+                    <Button variant="outline" className="flex-1 flex items-center gap-2 rounded-full">
                       <Mail size={16}/> 
                     </Button>
                   </>
@@ -637,7 +470,7 @@ export default function MarketPage() {
               </div>
             </CardContent>
           </Card>
-        ))}
+        )})}
       </div>
     </div>
   )
