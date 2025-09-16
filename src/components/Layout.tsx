@@ -35,16 +35,14 @@ const Layout = ({ children }: LayoutProps) => {
   };
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-gradient-background flex md:max-w-7xl md:mx-auto">
-        {/* Top Navigation Bar for Logged-in Users */}
-        
+      <div className="min-h-screen bg-gradient-background relative md:max-w-7xl md:mx-auto">        
         {/* Sidebar trigger button - always visible on md+ screens */}
         <div className="hidden md:block fixed left-4 top-4 z-50">
           <SidebarTrigger className="inline-flex items-center justify-center h-10 w-10 rounded-md text-primary bg-white border shadow hover:bg-primary hover:text-white transition-colors" />
         </div>
         
-        {/* Sidebar for desktop */}
-        <Sidebar className="hidden md:flex">
+        {/* Sidebar for desktop - positioned absolutely to overlay */}
+        <Sidebar className="hidden md:flex fixed left-0 top-0 h-full z-40">
           <SidebarHeader className="p-6 border-b border-border">
             <div className="flex-1" />
           </SidebarHeader>
@@ -94,6 +92,7 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
           </SidebarContent>
         </Sidebar>
+        
         {/* Sidebar sheet for mobile */}
         <Sidebar className="md:hidden">
           <SidebarHeader className="p-6 border-b border-border" />
@@ -143,8 +142,9 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
           </SidebarContent>
         </Sidebar>
-        {/* Main Content */}
-        <main className="flex-1 pt-20 pb-20 md:pb-0">
+        
+        {/* Main Content - full width always */}
+        <main className="w-full pt-20 pb-20 md:pb-0">
           {children}
         </main>
       </div>
