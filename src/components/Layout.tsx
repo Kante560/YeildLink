@@ -23,7 +23,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
-    { path: '/crops', icon: Sprout, label: 'My crops' },
+    { path: '/crops', icon: Sprout, label: 'Track crops' },
     { path: '/map', icon: MapPin, label: 'Map' },
     { path: '/marketplace', icon: ShoppingCart, label: 'Market' },
     { path: '/profile', icon: User, label: 'Profile' },

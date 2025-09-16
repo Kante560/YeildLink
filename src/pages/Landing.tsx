@@ -96,15 +96,16 @@ const Landing = () => {
       <nav className="border-b border-border bg-card/80 backdrop-blur sticky top-0 z-50">
         <div className="max-w-[84rem] w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-        {/* Logo */}
-        <div className="flex flex-row items-center space-x-2">
-          <Link to="/" className="flex items-center space-x-2">
-            <Sprout className="h-7 w-7 text-[#22b14c]" />
-            <span className="text-2xl font-bold text-[#22b14c]">
-          YieldLink
-            </span>
-          </Link>
-        </div>
+            {/* Logo */}
+            <div className="flex flex-row items-center space-x-2">
+              <Link to="/" className="flex items-center space-x-2">
+                <Sprout className="h-7 w-7 text-[#22b14c]" />
+                <span className="text-2xl font-bold text-[#22b14c]">
+                  YieldLink
+                </span>
+              </Link>
+            </div>
+            
         {/* Center Nav Links */}
         <div className="flex-1 md:flex hidden justify-center ">
           <ul className="flex space-x-10 text-lg">
@@ -124,60 +125,60 @@ const Landing = () => {
         </div>
         {/* Right Side Buttons */}
         <div className="md:flex hidden items-center space-x-4  ">
-          <Link to="/auth?mode=login" className="font-bold text-[#22b14c] text-lg">Log in</Link>
+          <Link to="/auth?mode=login" className="font-700 font-bold text-[#239B32] text-lg">Log in</Link>
           <Link to="/auth?mode=signup">
-            <Button className="bg-[#22b14c] text-white font-bold text-lg px-6 py-2 rounded-full shadow-md hover:bg-[#1a8c39] transition-all" style={{boxShadow: '0 2px 8px 0 rgba(34,177,76,0.15)'}}>Get started</Button>
+            <Button className="bg-[#239B32] text-white font-700 text-lg px-[] py-2 rounded-full shadow-md hover:bg-[#1a8c39] transition-all" style={{boxShadow: '0 2px 8px 0 rgba(34,177,76,0.15)'}}>Get started</Button>
           </Link>
         </div>
-      </div>
         </div>
-      </nav>
+          </div>
+        </nav>
 
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
+        {/* Hero Section */}
+        <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+            <div className="max-w-7xl flex justify-between mx-auto">
+            <div className="flex  w-full">
             {/* Left: Text Content */}
-            <div className="space-y-8">
-              <h1 className="text-4xl sm:text-5xl lg:text-5xl font-bold text-foreground font-mont leading-tight">
-                Smarter Farming. <span className="text-[#22b14c]">Stronger Harvest.</span>
-              </h1>
-              <p className="text-base sm:text-lg text-muted-foreground max-w-xl">
-                YieldLink helps farmers know what to plant, when to plant, and connects regions with surplus crops to those in need - reducing waste, increasing food security.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/auth?mode=signup">
-                  <Button size="lg" className="bg-[#22b14c] text-white font-bold px-6 py-2 rounded-lg shadow-md hover:bg-[#1a8c39] transition-all">Join Yieldlink</Button>
-                </Link>
-                <Link to="/map">
-                  <Button size="lg" variant="outline" className="font-bold px-6 py-2 rounded-lg border-[#22b14c] text-[#22b14c] hover:bg-[#eafff1] border-2">See How it works</Button>
-                </Link>
-              </div>
+            <div className="w-[70%] mt-[10rem] space-y-8 pr-8">
+            <h1 className="text-4xl sm:text-5xl lg:text-[55px] font-bold  text-foreground font-mont leading-tight">
+            Smarter Farming. <span className="text-[#22b14c]">Stronger Harvest.</span>
+            </h1>
+            <p className="text-base sm:text-lg text-muted-foreground text-[#000000B2] max-w-[800px]">
+            YieldLink helps farmers know what to plant, when to plant, and connects regions with surplus crops to those in need - reducing waste, increasing food security.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+            <Link to="/auth?mode=signup">
+              <Button size="lg" className="bg-[#22b14c] text-white font-bold px-6 py-2 rounded-lg shadow-md hover:bg-[#1a8c39] transition-all">Join Yieldlink</Button>
+            </Link>
+            <Link to="/map">
+              <Button size="lg" variant="outline" className="font-bold px-6 py-2 rounded-lg border-[#22b14c] text-[#22b14c] hover:bg-[#eafff1] border-2">See How it works</Button>
+            </Link>
+            </div>
             </div>
             {/* Right: Image Card Stack */}
-            <div className="relative md:flex hidden justify-center lg:justify-end">
-              <div className="relative w-[450px] h-[300px] group cursor-pointer">
-                {/* Back image, slightly rotated and offset */}
-                <img 
-                  src={"/oss/Farm5.jpeg"}
-                  alt="Smart farming field background"
-                  className="absolute top-6 w-full h-full   
-                  opacity-80 z-0 rotate-[-10deg] rounded-2xl transition-all object-cover duration-500 group-hover:rotate-[0deg] group-hover:top-[] 
-                  "
-                  style={{filter: 'brightness(0.95) blur(0.5px)'}}
-                /> 
-                {/* Front image */}
-                <img 
-                  src={"/oss/Farm5.jpeg"}
-                  alt="Smart farming field"
-                  className="relative z-10 w-full top-6 h-full object-cover rounded-2xl shadow-3xl  border-gray-300
-                   rotate-[5deg] transition-all duration-500 group-hover:rotate-[0deg]
-                   "
-                />
+            <div className="relative  md:flex hidden justify-center lg:justify-end" style={{ width: '30%' }}>
+              <div className="relative w-[400px] h-[500px] group cursor-pointer"> {/* Increased size */}
+              {/* Back image, slightly rotated and offset */}
+              <img 
+              src={"/oss/Frame 3.png"}
+              alt="Smart farming field background"
+              className="absolute top-6 w-full h-full   
+              opacity-80 z-0 rotate-[-10deg] rounded-2xl transition-all object-cover duration-500 group-hover:rotate-[0deg] 
+              "
+              style={{filter: 'brightness(0.95) blur(0.5px)', marginBottom: '90px'}} // Added marginBottom
+              /> 
+              {/* Front image */}
+              <img 
+              src={"/oss/Frame 3.png"}
+              alt="Smart farming field"
+              className="relative z-10 w-full top-6 h-full object-cover rounded-2xl shadow-3xl  border-gray-300
+               rotate-[5deg] transition-all duration-500 group-hover:rotate-[0deg]
+               "
+              />
               </div>
             </div>
+            </div>
           </div>
-        </div>
       </section>
 
       {/* Features Section */}
@@ -216,12 +217,12 @@ const Landing = () => {
 
      
       <section className="bg-[#f2fff6] py-14 px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-center mb-10">The Challenges We’re Tackling</h2>
           <div className="flex flex-col md:flex-row gap-6 justify-center items-start">
             {/* Challenge 1 */}
-            <div className="flex-1 flex flex-col items-center">
-              <div className="bg-[#22b14c] rounded-full w-12 h-12 flex items-center justify-center mb-[-24px] z-10">
+            <div className="flex-1 flex flex-col ">
+              <div className="bg-[#22b14c] rounded-full w-12 h-12 flex items-center justify-center mb-[-24px] ml-[30px] z-10">
                 <Sprout className="text-white w-7 h-7" />
               </div>
               <div className="bg-white border border-[#e0e0e0] rounded-lg shadow-sm px-6 py-8 w-full text-center" style={{minHeight: '140px'}}>
@@ -230,7 +231,7 @@ const Landing = () => {
             </div>
             {/* Challenge 2 */}
             <div className="flex-1 flex flex-col items-center">
-              <div className="bg-[#22b14c] rounded-full w-12 h-12 flex items-center justify-center mb-[-24px] z-10">
+              <div className="bg-[#22b14c] rounded-full w-12 h-12 flex items-center justify-center mb-[-24px] ml-[-10rem] z-10">
                 <MapPin className="text-white w-7 h-7" />
               </div>
               <div className="bg-white border border-[#e0e0e0] rounded-lg shadow-sm px-6 py-8 w-full text-center" style={{minHeight: '140px'}}>
@@ -239,7 +240,7 @@ const Landing = () => {
             </div>
             {/* Challenge 3 */}
             <div className="flex-1 flex flex-col items-center">
-              <div className="bg-[#22b14c] rounded-full w-12 h-12 flex items-center justify-center mb-[-24px] z-10">
+              <div className="bg-[#22b14c] rounded-full w-12 h-12 flex items-center justify-center mb-[-24px]  ml-[-10rem]  z-10">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 18c.978 0 1.978-.5 3-1.5S8.022 15 9 15s1.978.5 3 1.5S13.978 18 15 18s1.978-.5 3-1.5S20.022 15 21 15" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6h18M3 12h18" /></svg>
               </div>
               <div className="bg-white border border-[#e0e0e0] rounded-lg shadow-sm px-6 py-8 w-full text-center" style={{minHeight: '140px'}}>
@@ -252,7 +253,7 @@ const Landing = () => {
 
       {/* Our Simple Solution Section */}
       <section className="py-16 px-4 bg-white">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-center mb-10">Our Simple Solution.</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Card 1 */}
@@ -287,7 +288,7 @@ const Landing = () => {
 
       {/* How it works Section */}
         <section className="bg-green-50 py-16">
-      <div className="max-w-5xl mx-auto px-6 text-center">
+      <div className="max-w-4xl mx-auto px-6 text-center">
         {/* Title */}
         <h2 className="text-2xl font-bold mb-12">How it works</h2>
 

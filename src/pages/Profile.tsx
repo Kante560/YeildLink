@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/AuthContext/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,16 +12,19 @@ import { User, Phone, Mail, MapPin, Bell, Activity, LogOut, Edit } from 'lucide-
 import { toast } from '@/hooks/use-toast';
 
 const Profile = () => {
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(true);
-
+  const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
-    name: 'Ada Okafor',
-    location: 'Kaduna, Nigeria',
-    phone: '+234 803 XXX XXXX',
-    email: 'ada.okafor@email.com',
-    joinedDate: 'January 2024'
+    name: '',
+    location: '',
+    phone: '',
+    email: '',
+    joinedDate: ''
   });
 
   const recentActivity = [
@@ -28,20 +33,96 @@ const Profile = () => {
     { action: 'Received seasonal alert for Maize', date: '2 weeks ago', type: 'alert' },
   ];
 
-  const handleSaveProfile = () => {
-    setIsEditing(false);
-    toast({
-      title: 'Profile Updated',
-      description: 'Your profile information has been saved successfully.',
-    });
+
+  // Fetch profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user || !user.token) {
+        toast({ title: 'Unauthorized', description: 'Please login to access your profile.', variant: 'destructive' });
+        navigate('/login');
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch('https://yieldlink-api-six.vercel.app/api/auth/profile', {
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setProfile({
+            name: data.name || '',
+            location: data.location || '',
+            phone: data.phone || '',
+            email: data.email || '',
+            joinedDate: data.joinedDate || 'January 2024',
+          });
+        } else if (res.status === 401) {
+          toast({ title: 'Session expired', description: 'Please login again.', variant: 'destructive' });
+          logout();
+          navigate('/login');
+        } else {
+          toast({ title: 'Error', description: 'Failed to fetch profile', variant: 'destructive' });
+        }
+      } catch (err) {
+        toast({ title: 'Error', description: 'Network error', variant: 'destructive' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Save profile changes
+  const handleSaveProfile = async () => {
+    if (!user || !user.token) {
+      toast({ title: 'Unauthorized', description: 'Please login to update your profile.', variant: 'destructive' });
+      navigate('/login');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('https://yieldlink-api-six.vercel.app/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: profile.name,
+          phone: profile.phone,
+          email: profile.email,
+        }),
+      });
+      if (res.ok) {
+        setIsEditing(false);
+        toast({
+          title: 'Profile Updated',
+          description: 'Your profile information has been saved successfully.',
+        });
+      } else if (res.status === 401) {
+        toast({ title: 'Session expired', description: 'Please login again.', variant: 'destructive' });
+        logout();
+        navigate('/login');
+      } else {
+        toast({ title: 'Error', description: 'Failed to update profile', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: 'Network error', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogout = () => {
+    logout();
     toast({
       title: 'Logged Out',
       description: 'You have been logged out successfully.',
     });
-    // Handle logout logic here
+    navigate('/login');
   };
 
   return (
@@ -80,8 +161,8 @@ const Profile = () => {
                   <Input
                     id="name"
                     value={profile.name}
-                    onChange={(e) => setProfile({...profile, name: e.target.value})}
-                    disabled={!isEditing}
+                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                    disabled={!isEditing || loading}
                   />
                 </div>
                 <div>
@@ -89,8 +170,8 @@ const Profile = () => {
                   <Input
                     id="location"
                     value={profile.location}
-                    onChange={(e) => setProfile({...profile, location: e.target.value})}
-                    disabled={!isEditing}
+                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                    disabled={!isEditing || loading}
                   />
                 </div>
               </div>
@@ -101,8 +182,8 @@ const Profile = () => {
                   <Input
                     id="phone"
                     value={profile.phone}
-                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                    disabled={!isEditing}
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    disabled={!isEditing || loading}
                   />
                 </div>
                 <div>
@@ -110,18 +191,18 @@ const Profile = () => {
                   <Input
                     id="email"
                     value={profile.email}
-                    onChange={(e) => setProfile({...profile, email: e.target.value})}
-                    disabled={!isEditing}
+                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    disabled={!isEditing || loading}
                   />
                 </div>
               </div>
               
               {isEditing && (
                 <div className="flex gap-3 pt-4">
-                  <Button onClick={handleSaveProfile} variant="hero">
-                    Save Changes
+                  <Button onClick={handleSaveProfile} variant="hero" disabled={loading}>
+                    {loading ? 'Saving...' : 'Save Changes'}
                   </Button>
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  <Button variant="outline" onClick={() => setIsEditing(false)} disabled={loading}>
                     Cancel
                   </Button>
                 </div>
@@ -181,7 +262,7 @@ const Profile = () => {
             <CardContent className="space-y-4">
               <div className="text-center pb-4">
                 <div className="w-16 h-16 bg-primary rounded-full mx-auto mb-3 flex items-center justify-center">
-                  <User className="w-8 h-8 text-primary-foreground" />
+                  <User className="w  -8 h-8 text-primary-foreground" />
                 </div>
                 <h3 className="font-semibold">{profile.name}</h3>
                 <p className="text-sm text-muted-foreground">Member since {profile.joinedDate}</p>

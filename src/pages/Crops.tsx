@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { getAllCrops, addCropToTracker, ApiCrop, getTrackedCrops, deleteTrackedCrop, TrackedCrop } from '@/services/cropService';
+import { useAuth } from '@/AuthContext/AuthContext';
 
 interface Crop {
-  id: string;
+  id: string; // trackerId when coming from backend
   name: string;
   status: 'favorable' | 'transitional' | 'unfavorable';
   seasonEnd: string;
@@ -16,18 +18,50 @@ interface Crop {
 }
 
 const Crops = () => {
-  const [myCrops, setMyCrops] = useState<Crop[]>([
-    { id: '1', name: 'Cassava', status: 'favorable', seasonEnd: 'In 4 months', confidence: 95 },
-    { id: '2', name: 'Tomatoes', status: 'transitional', seasonEnd: 'In 2 weeks', confidence: 72 },
-    { id: '3', name: 'Rice', status: 'unfavorable', seasonEnd: 'Season ended', confidence: 30 },
-  ]);
+const [myCrops, setMyCrops] = useState<Crop[]>([]);
 
   const [isAddingCrop, setIsAddingCrop] = useState(false);
-  const [selectedCrop, setSelectedCrop] = useState('');
+  const [selectedCropId, setSelectedCropId] = useState<string>('');
+  const [availableCrops, setAvailableCrops] = useState<ApiCrop[]>([]);
+  const [loadingCrops, setLoadingCrops] = useState(false);
+  const { user } = useAuth();
 
-  const availableCrops = [
-    'Maize', 'Yam', 'Sweet Potato', 'Plantain', 'Beans', 'Millet', 'Sorghum', 'Groundnut'
-  ];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoadingCrops(true);
+        const crops = await getAllCrops();
+        setAvailableCrops(crops);
+      } catch (err: any) {
+        toast({ title: 'Failed to load crops', description: err.message, variant: 'destructive' });
+      } finally {
+        setLoadingCrops(false);
+      }
+    };
+    load();
+  }, []);
+
+  // Load tracked crops for the user so we don't lose them on reload
+  useEffect(() => {
+    const loadTracked = async () => {
+      if (!user) return;
+      try {
+        const tracked = await getTrackedCrops((user as any).id ?? (user as any).userId ?? '');
+        const mapped: Crop[] = tracked.map((t) => ({
+          id: t.trackerId,
+          name: t.name,
+          status: 'favorable',
+          seasonEnd: 'In 3 months',
+          confidence: 88,
+        }));
+        setMyCrops(mapped);
+      } catch (err: any) {
+        toast({ title: 'Failed to load your tracked crops', description: err.message, variant: 'destructive' });
+      }
+    };
+    // Small delay to avoid stale caches from timing
+    setTimeout(loadTracked, 50);
+  }, [user]);
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -42,31 +76,48 @@ const Crops = () => {
     }
   };
 
-  const addCrop = () => {
-    if (selectedCrop) {
-      const newCrop: Crop = {
-        id: Date.now().toString(),
-        name: selectedCrop,
+  const addCrop = async () => {
+    if (!selectedCropId) return;
+    if (!user) {
+      toast({ title: 'Not authenticated', description: 'Please login to add crops.', variant: 'destructive' });
+      return;
+    }
+    try {
+      await addCropToTracker({ cropId: selectedCropId, userId: (user as any).id ?? (user as any).userId ?? '' });
+      // Backend add route returns no body. Reload tracked crops to sync real trackerIds.
+      const tracked = await getTrackedCrops((user as any).id ?? (user as any).userId ?? '');
+      const mapped: Crop[] = tracked.map((t) => ({
+        id: t.trackerId,
+        name: t.name,
         status: 'favorable',
         seasonEnd: 'In 3 months',
         confidence: 88,
-      };
-      setMyCrops([...myCrops, newCrop]);
-      setSelectedCrop('');
+      }));
+      setMyCrops(mapped);
+      setSelectedCropId('');
       setIsAddingCrop(false);
-      toast({
-        title: 'Crop Added',
-        description: `${selectedCrop} has been added to your crop list.`,
-      });
+      toast({ title: 'Crop Added', description: 'Crop added to your tracker.' });
+    } catch (err: any) {
+      toast({ title: 'Failed to add crop', description: err.message, variant: 'destructive' });
     }
   };
 
-  const removeCrop = (cropId: string) => {
-    setMyCrops(myCrops.filter(crop => crop.id !== cropId));
-    toast({
-      title: 'Crop Removed',
-      description: 'Crop has been removed from your list.',
-    });
+  const removeCrop = async (trackerId: string) => {
+    if (!user) return;
+    try {
+      await deleteTrackedCrop((user as any).id ?? (user as any).userId ?? '', trackerId);
+      const tracked = await getTrackedCrops((user as any).id ?? (user as any).userId ?? '');
+      const mapped: Crop[] = tracked.map((t) => ({
+        id: t.trackerId,
+        name: t.name,
+        status: 'favorable',
+        seasonEnd: 'In 3 months',
+        confidence: 88,
+      }));
+      setMyCrops(mapped);
+    } catch (err: any) {
+      toast({ title: 'Failed to remove crop', description: err.message, variant: 'destructive' });
+    }
   };
 
   return (
@@ -96,36 +147,53 @@ const Crops = () => {
       >
         <div className="relative z-10 grid gap-4 md:grid-cols-3 p-6">
           <Card className="bg-user-dashboard  backdrop-blur-sm shadow-none ">
-            <CardContent className="p-6 text-center">
-              <div className="w-8 h-8 bg-success rounded-full mx-auto mb-2 flex items-center justify-center">
+            <CardContent className="p-6 ">
+              <div className='flex justify-start flex-col'>            
+              <div>
+                 <div className="w-8 h-8 bg-success  rounded-full  mb-6 flex items-center justify-center">
                 <CheckCircle size={24} className="text-success-foreground" />
+              </div> 
               </div>
-              <h3 className="font-semibold text-success">Crops in favorable season:</h3>
-              <p className="text-2xl font-bold text-success">
+              <div className='flex'>
+             <h3 className="font-semibold text-success">Crops in favorable season:</h3>
+              <p className="text-2xl font-bold mt-5 text-success">
                 {myCrops.filter(c => c.status === 'favorable').length}
               </p>
+              </div>
+             </div>
+              
             </CardContent>
           </Card>
           <Card className="bg-user-dashboard backdrop-blur-sm shadow-none">
-            <CardContent className="p-6 text-center">
-              <div className="w-8 h-8 bg-warning rounded-full mx-auto mb-2 flex items-center justify-center">
+            <CardContent className="p-6 ">
+              <div className='flex justify-start flex-col'>
+              <div className="w-8 h-8 bg-warning rounded-full  mb-6 flex items-center justify-center">
                 <Clock size={24} className="text-warning-foreground" />
+              </div>  
               </div>
-              <h3 className="font-semibold text-warning">Crops in ending season:</h3>
-              <p className="text-2xl font-bold text-warning">
+              <div className='flex'>
+                <h3 className="font-semibold text-warning">Crops in ending season:</h3>
+              <p className="text-2xl font-bold mt-5  text-warning">
                 {myCrops.filter(c => c.status === 'transitional').length}
               </p>
+              </div>
+              
             </CardContent>
           </Card>
           <Card className="bg-user-dashboard backdrop-blur-sm shadow-none">
-            <CardContent className="p-6 text-center">
-              <div className="w-8 h-8 bg-destructive rounded-full mx-auto mb-2 flex items-center justify-center">
+            <CardContent className="p-6 ">
+              <div className='flex justify-start flex-col'>
+                 <div className="w-8 h-8 bg-destructive rounded-full  mb-6 flex items-center justify-center">
                 <AlertTriangle size={24} className="text-destructive-foreground" />
               </div>
-              <h3 className="font-semibold text-destructive">Crops in past season:</h3>
-              <p className="text-2xl font-bold text-destructive">
+              </div>
+             <div className='flex'>
+               <h3 className="font-semibold text-destructive">Crops in past season:</h3>
+              <p className="text-2xl font-bold mt-5 text-destructive">
                 {myCrops.filter(c => c.status === 'unfavorable').length}
               </p>
+             </div>
+             
             </CardContent>
           </Card>
         </div>
@@ -142,27 +210,27 @@ const Crops = () => {
           <CardContent>
             <div className="flex gap-4 items-end">
               <div className="flex-1">
-                <Select value={selectedCrop} onValueChange={setSelectedCrop}>
+                <Select value={selectedCropId} onValueChange={setSelectedCropId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a crop..." />
+                    <SelectValue placeholder={loadingCrops ? 'Loading crops...' : 'Select a crop...'} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableCrops.map((crop) => (
-                      <SelectItem key={crop} value={crop}>
-                        {crop}
+                      <SelectItem key={String(crop.id)} value={String(crop.id)}>
+                        {crop.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={addCrop} disabled={!selectedCrop}>
+              <Button onClick={addCrop} disabled={!selectedCropId}>
                 Add Crop
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => {
                   setIsAddingCrop(false);
-                  setSelectedCrop('');
+                  setSelectedCropId('');
                 }}
               >
                 Cancel
@@ -187,7 +255,8 @@ const Crops = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Remove crop"
+                    className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                     onClick={() => removeCrop(crop.id)}
                   >
                     <Trash2 size={16} className="text-destructive" />
