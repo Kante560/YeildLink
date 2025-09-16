@@ -144,8 +144,10 @@ const Layout = ({ children }: LayoutProps) => {
         </Sidebar>
         
         {/* Main Content - full width always */}
-        <main className="h-full w-full pt-16 pb-16 md:pb-4 overflow-y-auto">
-          {children}
+        <main className="flex-1 w-full overflow-y-auto">
+          <div className="p-4 md:p-6 h-full">
+            {children}
+          </div>
         </main>
       </div>
       {/* Bottom Navigation for Mobile */}
