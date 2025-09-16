@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Search, Phone, Mail, Star, Trash2 } from "lucide-react"
-import { getMarketplaceListings, addMarketplaceListing, deleteMarketplaceListing, updateMarketplaceListing, type MarketplaceItem } from "@/services/cropService"
+import { getMarketplaceListings, getMyMarketplaceListings, addMarketplaceListing, deleteMarketplaceListing, updateMarketplaceListing, type MarketplaceItem } from "@/services/cropService"
 import { useAuth } from "@/AuthContext/AuthContext"
 
 export default function MarketPage() {
@@ -40,7 +40,12 @@ export default function MarketPage() {
       setLoading(true)
       setError(null)
       try {
-        const data = await getMarketplaceListings()
+        let data: MarketplaceItem[] = [];
+        if (tab === "my") {
+          data = await getMyMarketplaceListings();
+        } else {
+          data = await getMarketplaceListings();
+        }
         setItems(data)
       } catch (e: any) {
         setError(e?.message ?? "Failed to load listings")
@@ -49,7 +54,7 @@ export default function MarketPage() {
       }
     }
     load()
-  }, [])
+  }, [tab])
 
   const toTitle = (val?: string) => (val ? val.charAt(0).toUpperCase() + val.slice(1) : undefined)
 
@@ -274,7 +279,7 @@ export default function MarketPage() {
 
       {/* Edit Listing Modal */}
       {editOpen && (
-        <dialog id="editListingDialog" open className="rounded-lg p-0 w-full max-w-2xl">
+        <div className="rounded-lg p-0 w-full max-w-2xl z-50 backdrop-blur-sm " onClick={() => setEditOpen(false)} style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
           <form
             className="bg-white rounded-lg shadow-lg p-6 space-y-6"
             onSubmit={async (e) => {
@@ -348,7 +353,7 @@ export default function MarketPage() {
               {editing ? 'Saving...' : 'Edit Listing'}
             </button>
           </form>
-        </dialog>
+        </div>
       )}
 
       {/* Filters */}

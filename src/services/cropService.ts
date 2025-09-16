@@ -1,3 +1,38 @@
+export async function getMyMarketplaceListings(): Promise<MarketplaceItem[]> {
+  const res = await fetch(`${BASE_URL}/marketplace/my`, {
+    method: "GET",
+    headers: {
+      ...getAuthHeader(),
+    },
+    cache: 'no-store' as RequestCache,
+  });
+  if (!res.ok) {
+    let message = `Failed to get my marketplace listings (${res.status})`;
+    try {
+      const data = await res.json();
+      if (data?.message) message = data.message;
+    } catch {}
+    throw new Error(message);
+  }
+  const raw = await res.json();
+  const list: MarketplaceApiItem[] = Array.isArray(raw?.data)
+    ? raw.data
+    : Array.isArray(raw?.items)
+    ? raw.items
+    : Array.isArray(raw)
+    ? raw
+    : [];
+  return list.map((item) => ({
+    id: String(item.id),
+    userId: item.user_id != null ? String(item.user_id) : undefined,
+    cropName: String(item.crop_name ?? ""),
+    location: String(item.location ?? ""),
+    quantity: item.quantity != null ? String(item.quantity) : undefined,
+    contact: item.contact,
+    createdAt: item.created_at,
+    updatedAt: item.updated_at,
+  }));
+}
 export async function deleteMarketplaceListing(id: string | number): Promise<void> {
   const res = await fetch(`${BASE_URL}/marketplace/${id}`, {
     method: "DELETE",
