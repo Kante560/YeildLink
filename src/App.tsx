@@ -88,9 +88,9 @@ const App = () => (
                 </PrivateRoute>
               }
             />
-        
 
-           
+            {/* 404 Not Found Route */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>
       </QueryClientProvider>
