@@ -9,12 +9,27 @@ import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
-  SidebarTrigger
+  SidebarTrigger,
+  useSidebar
 } from './ui/sidebar';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
+
+// Child component to handle main content with sidebar state
+const MainContent = ({ children }: { children: React.ReactNode }) => {
+  const { state } = useSidebar(); // Safe to use here, inside SidebarProvider
+
+  return (
+    <main className={cn(
+      "flex-1 pt-10 pb-20 md:pb-0",
+      state === "expanded" ? "md:ml-[--sidebar-width]" : "md:ml-0"
+    )}>
+      {children}
+    </main>
+  );
+};
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
@@ -33,18 +48,17 @@ const Layout = ({ children }: LayoutProps) => {
     logout();
     navigate('/auth?mode=login');
   };
+
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-gradient-background flex md:max-w-7xl md:mx-auto">
-        {/* Top Navigation Bar for Logged-in Users */}
-        
+      <div className="min-h-screen bg-gradient-background flex w-full md:max-w-8xl md:mx-auto">
         {/* Sidebar trigger button - always visible on md+ screens */}
-        <div className="hidden md:block fixed left-4 top-4 z-50">
+     <div className="hidden md:block fixed left-4 top-4 z-50">
           <SidebarTrigger className="inline-flex items-center justify-center h-10 w-10 rounded-md text-primary bg-white border shadow hover:bg-primary hover:text-white transition-colors" />
         </div>
         
         {/* Sidebar for desktop */}
-        <Sidebar className="hidden md:flex">
+        <Sidebar className="hidden md:flex fixed">
           <SidebarHeader className="p-6 border-b border-border">
             <div className="flex-1" />
           </SidebarHeader>
@@ -143,13 +157,13 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
           </SidebarContent>
         </Sidebar>
+
         {/* Main Content */}
-        <main className="flex-1 pt-20 pb-20 md:pb-0">
-          {children}
-        </main>
+        <MainContent>{children}</MainContent>
       </div>
+
       {/* Bottom Navigation for Mobile */}
-      <div className="md:hidden">
+      <div className="md:hidden fixed bottom-0 left-0 w-full">
         <Navigation />
       </div>
     </SidebarProvider>
