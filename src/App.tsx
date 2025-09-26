@@ -14,6 +14,7 @@ import Marketplace from "./pages/Marketplace";
 import Profile from "./pages/Profile";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
+import TrackLocation from "./pages/TrackLocation";
 import PrivateRoute from "./Route/PrivateRoute";
 
 import { AuthProvider } from "./AuthContext/AuthContext"; // fixed import path
@@ -74,6 +75,16 @@ const App = () => (
                 <PrivateRoute>
                   <Layout>
                     <Marketplace />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/track-location"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <TrackLocation />
                   </Layout>
                 </PrivateRoute>
               }

@@ -46,9 +46,7 @@ const Dashboard = () => {
         </div>
         <div className="relative p-8 text-primary-foreground">
           {/* Sidebar trigger icon for mobile/desktop */}
-          <div className="absolute left-4 top-4 z-20 md:hidden">
-            <SidebarTrigger />
-          </div>
+        
           <h1 className="text-3xl font-bold mb-2">Hello {user?.name || 'Farmer'}! 👋</h1>
           <p className="text-lg opacity-90 mb-6">
             Here's today's crop insights for your region

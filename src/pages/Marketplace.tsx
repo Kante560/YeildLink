@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Search, Phone, Mail, Star, Trash2 } from "lucide-react"
-import { getMarketplaceListings, getMyMarketplaceListings, addMarketplaceListing, deleteMarketplaceListing, updateMarketplaceListing, type MarketplaceItem } from "@/services/cropService"
+import { getMarketplaceListings, getMyMarketplaceListings, addMarketplaceListing, deleteMarketplaceListing, updateMarketplaceListing, getAllCrops, type MarketplaceItem, type ApiCrop } from "@/services/cropService"
 import { useAuth } from "@/AuthContext/AuthContext"
 
 export default function MarketPage() {
@@ -18,7 +18,7 @@ export default function MarketPage() {
   const [items, setItems] = useState<MarketplaceItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [cropFilter, setCropFilter] = useState<string | undefined>(undefined)
+  const [cropFilter, setCropFilter] = useState<string>("")
   const [locationFilter, setLocationFilter] = useState<string | undefined>(undefined)
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -35,6 +35,15 @@ export default function MarketPage() {
   const [newPhone, setNewPhone] = useState<string>("")
   const [newEmail, setNewEmail] = useState<string>("")
 
+  // Crop suggestion state
+  const [cropSuggestions, setCropSuggestions] = useState<ApiCrop[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+
+  useEffect(() => {
+    // Fetch all crops once for suggestions
+    getAllCrops().then(setCropSuggestions).catch(() => setCropSuggestions([]))
+  }, [])
+
   useEffect(() => {
     const load = async () => {
       setLoading(true)
@@ -43,40 +52,39 @@ export default function MarketPage() {
         let data: MarketplaceItem[] = [];
         if (tab === "my") {
           data = await getMyMarketplaceListings();
+          // Client-side filtering for user's listings
+          if (cropFilter) {
+            data = data.filter(item => item.cropName.toLowerCase().includes(cropFilter.toLowerCase()));
+          }
+          if (locationFilter) {
+            data = data.filter(item => item.location.toLowerCase().includes(locationFilter.toLowerCase()));
+          }
         } else {
-          data = await getMarketplaceListings();
+          data = await getMarketplaceListings({
+            cropName: cropFilter ? toTitle(cropFilter) : undefined,
+            location: locationFilter
+              ? locationFilter
+                  .split(" ")
+                  .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+                  .join(" ")
+              : undefined,
+          });
         }
         setItems(data)
-      } catch (e: any) {
-        setError(e?.message ?? "Failed to load listings")
+      } catch (e) {
+        setError((e as Error)?.message ?? "Failed to load listings")
       } finally {
         setLoading(false)
       }
     }
     load()
-  }, [tab])
+  }, [tab, cropFilter, locationFilter])
 
   const toTitle = (val?: string) => (val ? val.charAt(0).toUpperCase() + val.slice(1) : undefined)
 
-  const handleSearch = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await getMarketplaceListings({
-        cropName: toTitle(cropFilter),
-        location: locationFilter
-          ? locationFilter
-              .split(" ")
-              .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-              .join(" ")
-          : undefined,
-      })
-      setItems(data)
-    } catch (e: any) {
-      setError(e?.message ?? "Search failed")
-    } finally {
-      setLoading(false)
-    }
+  // Filtering is now handled by useEffect, so search button is just a visual trigger
+  const handleSearch = () => {
+    // No-op: filtering is automatic
   }
 
   const handleContact = (contact?: string) => {
@@ -100,15 +108,15 @@ export default function MarketPage() {
   }
 
   return (
-    <div className="p-6 w-full">
+  <div className="p-2 sm:p-4 md:p-6 w-full">
       {/* Tabs + Add Button */}
-      <div className="flex items-center justify-between mb-6">
+  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <Tabs defaultValue="market" onValueChange={setTab}>
-          <TabsList className="rounded-full bg-gray-100 p-1">
-            <TabsTrigger value="market" className="rounded-full px-4 py-2 data-[state=active]:bg-green-600 data-[state=active]:text-white">
+          <TabsList className="rounded-full bg-[#239B32] p-1">
+            <TabsTrigger value="market" className="rounded-full px-4 text-white py-2 data-[state=active]:bg-white data-[state=active]:text-black">
               Market Listing
             </TabsTrigger>
-            <TabsTrigger value="my" className="rounded-full px-4 py-2 data-[state=active]:bg-green-600 data-[state=active]:text-white">
+            <TabsTrigger value="my" className="rounded-full px-4 py-2   data-[state=active]:bg-white text-white data-[state=active]:text-black">
               My Listing
             </TabsTrigger>
           </TabsList>
@@ -126,8 +134,11 @@ export default function MarketPage() {
 
           <dialog
             id="addListingDialog"
-            className="rounded-lg p-0 w-full max-w-2xl"
+            className="rounded-lg p-0 w-full max-w-2xl "
           >
+                      <div className="fixed inset-0 bg-white/30 backdrop-blur-lg z-40" />
+
+            <div className="rounded-lg p-0 w-full max-w-2xl z-50" style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(255,255,255,0.6)', boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)', backdropFilter: 'blur(12px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.18)' }}>
             <form
               className="bg-white rounded-lg shadow-lg p-6 space-y-6"
               onSubmit={async (e) => {
@@ -273,107 +284,140 @@ export default function MarketPage() {
                 </button>
               </div>
             </form>
+            </div>
           </dialog>
         </>
       </div>
 
       {/* Edit Listing Modal */}
       {editOpen && (
-        <div className="rounded-lg p-0 w-full max-w-2xl z-50 backdrop-blur-sm " onClick={() => setEditOpen(false)} style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
-          <form
-            className="bg-white rounded-lg shadow-lg p-6 space-y-6"
-            onSubmit={async (e) => {
-              e.preventDefault()
-              if (!editItem) return
-              try {
-                setEditing(true)
-                await updateMarketplaceListing(editItem.id, {
-                  cropName: editCropName,
-                  location: editLocation,
-                  quantity: editQuantity,
-                  contact: editContact,
-                })
-                const data = await getMarketplaceListings()
-                setItems(data)
-                setEditOpen(false)
-              } catch (err: any) {
-                alert(err?.message ?? 'Failed to update listing')
-              } finally {
-                setEditing(false)
-              }
-            }}
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-2xl font-semibold">Edit Listing</h3>
-                <p className="text-sm text-gray-500">Share your surplus crops with the community and connect with potential buyers</p>
+        <>
+          {/* Glassmorphism Backdrop */}
+          <div className="fixed inset-0 bg-white/30 backdrop-blur-lg z-40" />
+          <div className="rounded-lg p-0 w-full max-w-2xl z-50" style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(255,255,255,0.6)', boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)', backdropFilter: 'blur(12px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.18)' }}>
+            <form
+              className="bg-white/80 rounded-lg shadow-lg p-6 space-y-6"
+              onSubmit={async (e) => {
+                e.preventDefault()
+                if (!editItem) return
+                try {
+                  setEditing(true)
+                  await updateMarketplaceListing(editItem.id, {
+                    cropName: editCropName,
+                    location: editLocation,
+                    quantity: editQuantity,
+                    contact: editContact,
+                  })
+                  const data = await getMarketplaceListings()
+                  setItems(data)
+                  setEditOpen(false)
+                } catch (err: any) {
+                  alert(err?.message ?? 'Failed to update listing')
+                } finally {
+                  setEditing(false)
+                }
+              }}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-2xl font-semibold">Edit Listing</h3>
+                  <p className="text-sm text-gray-500">Share your surplus crops with the community and connect with potential buyers</p>
+                </div>
+                <button type="button" className="text-gray-500 hover:text-gray-700" onClick={() => setEditOpen(false)}>✕</button>
               </div>
-              <button type="button" className="text-gray-500 hover:text-gray-700" onClick={() => setEditOpen(false)}>✕</button>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" htmlFor="editCrop">Crop type</label>
-                <Input id="editCrop" placeholder="e.g Maize" value={editCropName} onChange={(e) => setEditCropName(e.target.value)} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" htmlFor="editCrop">Crop type</label>
+                  <Input id="editCrop" placeholder="e.g Maize" value={editCropName} onChange={(e) => setEditCropName(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" htmlFor="editPrice">Price</label>
+                  <Input id="editPrice" placeholder="e.g N800/kg" />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" htmlFor="editPrice">Price</label>
-                <Input id="editPrice" placeholder="e.g N800/kg" />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" htmlFor="editLocation">Location</label>
-                <Input id="editLocation" placeholder="Kaduna, Nigeria" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" htmlFor="editLocation">Location</label>
+                  <Input id="editLocation" placeholder="Kaduna, Nigeria" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" htmlFor="editQuantity">Quantity</label>
+                  <Input id="editQuantity" placeholder="e.g 500kg, 2 tons" value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" htmlFor="editQuantity">Quantity</label>
-                <Input id="editQuantity" placeholder="e.g 500kg, 2 tons" value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" htmlFor="editPhone">Phone Number</label>
-                <Input id="editPhone" placeholder="Enter your phone number" value={editContact} onChange={(e) => setEditContact(e.target.value)} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" htmlFor="editPhone">Phone Number</label>
+                  <Input id="editPhone" placeholder="Enter your phone number" value={editContact} onChange={(e) => setEditContact(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" htmlFor="editEmail">Email</label>
+                  <Input id="editEmail" placeholder="Enter your email" />
+                </div>
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-2" htmlFor="editEmail">Email</label>
-                <Input id="editEmail" placeholder="Enter your email" />
+                <label className="block text-sm font-medium mb-2" htmlFor="editDescription">Description (optional)</label>
+                <textarea id="editDescription" rows={4} className="w-full border rounded px-3 py-2 text-sm bg-gray-50" placeholder="Describe your crop quality, harvesting date, or other special conditions..." />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2" htmlFor="editDescription">Description (optional)</label>
-              <textarea id="editDescription" rows={4} className="w-full border rounded px-3 py-2 text-sm bg-gray-50" placeholder="Describe your crop quality, harvesting date, or other special conditions..." />
-            </div>
-
-            <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 font-medium disabled:opacity-60" disabled={editing}>
-              {editing ? 'Saving...' : 'Edit Listing'}
-            </button>
-          </form>
-        </div>
+              <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 font-medium disabled:opacity-60" disabled={editing}>
+                {editing ? 'Saving...' : 'Edit Listing'}
+              </button>
+            </form>
+          </div>
+        </>
       )}
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center bg-white shadow-sm rounded-lg p-4 mb-6">
-        <Select onValueChange={setCropFilter} value={cropFilter}>
-          <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder="Select crop to search" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Cassava">Cassava</SelectItem>
-            <SelectItem value="Tomatoes">Tomatoes</SelectItem>
-            <SelectItem value="Maize">Maize</SelectItem>
-          </SelectContent>
-        </Select>
+  <div className="flex flex-col gap-3 md:flex-row md:gap-4 items-stretch md:items-center bg-white shadow-sm rounded-lg p-3 md:p-4 mb-6 overflow-x-auto">
+        <div className="relative w-[250px]">
+          <Input
+            type="text"
+            placeholder="Type crop name..."
+            value={cropFilter}
+            onChange={e => {
+              setCropFilter(e.target.value)
+              setShowSuggestions(true)
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            autoComplete="off"
+          />
+          {showSuggestions && cropFilter && (
+            <div className="absolute left-0 right-0 top-full bg-white border rounded shadow z-10 max-h-48 overflow-auto">
+              {cropSuggestions
+                .filter(crop => crop.name.toLowerCase().includes(cropFilter.toLowerCase()))
+                .slice(0, 8)
+                .map(crop => (
+                  <div
+                    key={crop.id}
+                    className="px-3 py-2 cursor-pointer hover:bg-muted"
+                    onMouseDown={() => {
+                      setCropFilter(crop.name)
+                      setShowSuggestions(false)
+                    }}
+                  >
+                    {crop.name}
+                  </div>
+                ))}
+              {/* If no matches, show a hint */}
+              {cropSuggestions.filter(crop => crop.name.toLowerCase().includes(cropFilter.toLowerCase())).length === 0 && (
+                <div className="px-3 py-2 text-muted-foreground">No crop found</div>
+              )}
+            </div>
+          )}
+        </div>
 
-        <Select onValueChange={setLocationFilter} value={locationFilter}>
+        <Select onValueChange={val => setLocationFilter(val === "all" ? undefined : val)} value={locationFilter ?? "all"}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Filter by location" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All Locations</SelectItem>
             <SelectItem value="Cross River">Cross River</SelectItem>
             <SelectItem value="Kaduna">Kaduna</SelectItem>
             <SelectItem value="Jos">Jos</SelectItem>
@@ -386,7 +430,7 @@ export default function MarketPage() {
       </div>
 
       {/* Listings */}
-      <div className="grid md:grid-cols-3 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {error && (
           <div className="col-span-full text-red-600 text-sm">{error}</div>
         )}
@@ -396,8 +440,8 @@ export default function MarketPage() {
         {items.map((item) => {
           const isMine = item.userId != null && user?.id != null && String(item.userId) === String(user.id)
           return (
-          <Card key={item.id} className="rounded-xl border shadow-sm hover:shadow-md transition">
-            <CardContent className="p-4">
+          <Card key={item.id} className="rounded-xl border shadow-sm hover:shadow-md transition min-w-0">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-start justify-between mb-1">
                 <h3 className="font-semibold text-base flex items-center gap-2">
                   <span className="w-7 h-7 flex items-center justify-center rounded-full bg-green-100 text-green-700 font-semibold">
@@ -435,7 +479,7 @@ export default function MarketPage() {
               <div className="flex gap-2 mt-3">
                 {isMine ? (
                   <>
-                    <Button className="bg-green-600 hover:bg-green-700 flex-1 rounded-full py-2" onClick={() => {
+                    <Button className="bg-green-600 hover:bg-green-700 flex-1 rounded-[10px] py-2" onClick={() => {
                       setEditItem(item)
                       setEditCropName(item.cropName || "")
                       setEditLocation(item.location || "")
@@ -447,7 +491,7 @@ export default function MarketPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="flex-1 rounded-full"
+                      className="flex-1 rounded-[10px]"
                       onClick={async () => {
                         if (!window.confirm("Are you sure you want to delete this listing?")) return;
                         try {
@@ -464,10 +508,10 @@ export default function MarketPage() {
                   </>
                 ) : (
                   <>
-                    <Button className="bg-green-600 hover:bg-green-700 flex-1 flex items-center gap-2 rounded-full py-2" onClick={() => handleContact(item.contact)}>
+                    <Button className="bg-green-600 hover:bg-green-700 flex-1 flex items-center gap-2 rounded-[10px] py-2" onClick={() => handleContact(item.contact)}>
                       <Phone size={16}/> Contact
                     </Button>
-                    <Button variant="outline" className="flex-1 flex items-center gap-2 rounded-full">
+                    <Button variant="outline" className="flex-1 flex items-center gap-2 rounded-[10px]">
                       <Mail size={16}/> 
                     </Button>
                   </>

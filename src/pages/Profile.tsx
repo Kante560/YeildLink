@@ -132,13 +132,20 @@ const Profile = () => {
           <h1 className="text-3xl font-bold">Profile & Settings</h1>
           <p className="text-muted-foreground">Manage your account and preferences</p>
         </div>
+        <div className='flex flex-col' >
         <Button
           variant="outline"
           onClick={() => setIsEditing(!isEditing)}
+          className='bg-[#239B32] text-white hover:bg-green-700 hover:text-white'
         >
           <Edit className="mr-2 w-4 h-4" />
           {isEditing ? 'Cancel' : 'Edit Profile'}
         </Button>
+        <Button className='flex md:hidden' >
+          <LogOut className="mr-2 w-4 h-4" />
+          <span onClick={handleLogout}>Logout</span>
+        </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

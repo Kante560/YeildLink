@@ -180,7 +180,7 @@ export async function getTrackedCrops(userId: number | string): Promise<TrackedC
 
 export async function deleteTrackedCrop(userId: number | string, trackerId: number | string): Promise<void> {
   // Primary pattern per docs/screenshots: /crop-tracker/:userId/:trackerId
-  let res = await fetch(`${BASE_URL}/crop-tracker/${userId}/${trackerId}`, {
+  let res = await fetch(`${BASE_URL}/crop-tracker/${trackerId}/${userId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

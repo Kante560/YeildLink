@@ -54,7 +54,18 @@ const Auth = () => {
       navigate('/dashboard');
     } catch (err: unknown) {
       let message = 'Please check your credentials and try again.';
-      if (err instanceof Error) message = err.message;
+      // Custom error handling for common cases
+      if (err instanceof Error) {
+        if (/email.*exist|already.*used|already.*registered/i.test(err.message)) {
+          message = 'Email already in use. Please use a different email.';
+        } else if (/invalid.*credentials|not found|404|incorrect/i.test(err.message)) {
+          message = 'Invalid email, phone, or password.';
+        } else if (/required|missing|empty/i.test(err.message)) {
+          message = 'Please fill in all required fields.';
+        } else {
+          message = err.message;
+        }
+      }
       toast({
         title: 'Authentication Failed',
         description: message,

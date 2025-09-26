@@ -102,21 +102,25 @@ const [myCrops, setMyCrops] = useState<Crop[]>([]);
     }
   };
 
-  const removeCrop = async (trackerId: string) => {
-    if (!user) return;
+  const [deletingId, setDeletingId] = useState<string | null>(null); 
+  const removeCrop = async (cropId: string) => {
+    if (!user) {
+      console.error('No user found, cannot delete crop.');
+      return;
+    }
+    setDeletingId(cropId);
     try {
-      await deleteTrackedCrop((user as any).id ?? (user as any).userId ?? '', trackerId);
-      const tracked = await getTrackedCrops((user as any).id ?? (user as any).userId ?? '');
-      const mapped: Crop[] = tracked.map((t) => ({
-        id: t.trackerId,
-        name: t.name,
-        status: 'favorable',
-        seasonEnd: 'In 3 months',
-        confidence: 88,
-      }));
-      setMyCrops(mapped);
+      const userId = (user as any).id ?? (user as any).userId ?? '';
+      console.log('Attempting to delete crop:', { userId, cropId });
+      await deleteTrackedCrop(userId, cropId);
+      // Remove from UI immediately
+      setMyCrops(prev => prev.filter(crop => crop.id !== cropId));
+      console.log('Crop removed from UI. No immediate refetch to avoid reappearing.');
     } catch (err: any) {
+      console.error('Error deleting crop:', err);
       toast({ title: 'Failed to remove crop', description: err.message, variant: 'destructive' });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -145,54 +149,68 @@ const [myCrops, setMyCrops] = useState<Crop[]>([]);
           minHeight: '120px',
         }}
       >
-        <div className="relative z-10 grid gap-4 md:grid-cols-3 p-6">
+        <div className="relative z-2 grid gap-4 md:grid-cols-3 p-6">
           <Card className="bg-user-dashboard  backdrop-blur-sm shadow-none ">
             <CardContent className="p-6 ">
               <div className='flex justify-start flex-col'>            
-              <div>
-                 <div className="w-8 h-8 bg-success  rounded-full  mb-6 flex items-center justify-center">
-                <CheckCircle size={24} className="text-success-foreground" />
+              <div className='w-10 h-10  rounded-full  mb-6 flex items-center justify-center'
+             style={{
+             backgroundImage: `url('/FAV3.png')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              }}
+              >
+                 
+              </div>
+              <div className='flex items-center justify-between'>
+                <h3 className="font-semibold text-success">Crops in favorable season:</h3>
+                <p className="text-2xl font-bold text-success">
+                  {myCrops.filter(c => c.status === 'favorable').length}
+                </p>
+              </div>
+              </div>
+              </CardContent>
+              </Card>
+              <Card className="bg-user-dashboard backdrop-blur-sm shadow-none">
+                <CardContent className="p-6 ">
+                  <div className='flex justify-start flex-col'>
+                    <div className='w-10 h-10  rounded-full  mb-6 flex items-center justify-center'
+             style={{
+             backgroundImage: `url('/FAV1.png')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              }}
+              >
+                 
               </div> 
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <h3 className="font-semibold text-warning">Crops in ending season:</h3>
+                    <p className="text-2xl font-bold text-warning">
+                      {myCrops.filter(c => c.status === 'transitional').length}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-user-dashboard backdrop-blur-sm shadow-none">
+                <CardContent className="p-6 ">
+                  <div className='flex justify-start flex-col'>
+                   <div className='w-10 h-10  rounded-full  mb-6 flex items-center justify-center'
+             style={{
+             backgroundImage: `url('/FAV2.png')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              }}
+              >
+                 
               </div>
-              <div className='flex'>
-             <h3 className="font-semibold text-success">Crops in favorable season:</h3>
-              <p className="text-2xl font-bold mt-5 text-success">
-                {myCrops.filter(c => c.status === 'favorable').length}
-              </p>
-              </div>
-             </div>
-              
-            </CardContent>
-          </Card>
-          <Card className="bg-user-dashboard backdrop-blur-sm shadow-none">
-            <CardContent className="p-6 ">
-              <div className='flex justify-start flex-col'>
-              <div className="w-8 h-8 bg-warning rounded-full  mb-6 flex items-center justify-center">
-                <Clock size={24} className="text-warning-foreground" />
-              </div>  
-              </div>
-              <div className='flex'>
-                <h3 className="font-semibold text-warning">Crops in ending season:</h3>
-              <p className="text-2xl font-bold mt-5  text-warning">
-                {myCrops.filter(c => c.status === 'transitional').length}
-              </p>
-              </div>
-              
-            </CardContent>
-          </Card>
-          <Card className="bg-user-dashboard backdrop-blur-sm shadow-none">
-            <CardContent className="p-6 ">
-              <div className='flex justify-start flex-col'>
-                 <div className="w-8 h-8 bg-destructive rounded-full  mb-6 flex items-center justify-center">
-                <AlertTriangle size={24} className="text-destructive-foreground" />
-              </div>
-              </div>
-             <div className='flex'>
-               <h3 className="font-semibold text-destructive">Crops in past season:</h3>
-              <p className="text-2xl font-bold mt-5 text-destructive">
-                {myCrops.filter(c => c.status === 'unfavorable').length}
-              </p>
-             </div>
+                  </div>
+                  <div className='flex items-center justify-between'>
+                    <h3 className="font-semibold text-destructive">Crops in past season:</h3>
+                    <p className="text-2xl font-bold text-destructive ">
+                      {myCrops.filter(c => c.status === 'unfavorable').length}
+                    </p>
+                  </div>
              
             </CardContent>
           </Card>
@@ -258,8 +276,13 @@ const [myCrops, setMyCrops] = useState<Crop[]>([]);
                     aria-label="Remove crop"
                     className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                     onClick={() => removeCrop(crop.id)}
+                    disabled={deletingId === crop.id}
                   >
-                    <Trash2 size={16} className="text-destructive" />
+                    {deletingId === crop.id ? (
+                      <span className="animate-spin w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full inline-block" />
+                    ) : (
+                      <Trash2 size={16} className="text-destructive" />
+                    )}
                   </Button>
                 </div>
 
