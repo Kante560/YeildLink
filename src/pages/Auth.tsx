@@ -45,7 +45,7 @@ const Auth = () => {
     const timer = setTimeout(async () => {
       setLocationLoading(true);
       try {
-        const url = `http://yieldlink-api-six.vercel.app/api/location/suggest?query=${encodeURIComponent(q)}`;
+        const url = `https://yieldlink-api-six.vercel.app/api/location/suggest?query=${encodeURIComponent(q)}`;
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error(`Failed to fetch suggestions (${res.status})`);
         const data = await res.json();
