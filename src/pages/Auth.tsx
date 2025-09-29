@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import {  Sprout } from 'lucide-react';
+import { Sprout } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 
@@ -16,6 +16,15 @@ const Auth = () => {
   const [mode, setMode] = useState<'signup' | 'login'>('signup');
   const location = useLocation();
 
+  // Location suggestion state
+  type Suggestion = { name: string; latitude: number; longitude: number };
+  const [locationQuery, setLocationQuery] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<Suggestion[]>([]);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const suggestionBoxRef = useRef<HTMLDivElement | null>(null);
+  const [chosenLocation, setChosenLocation] = useState<Suggestion | null>(null);
+
   // Set mode from query string on mount
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -24,6 +33,60 @@ const Auth = () => {
       setMode(urlMode);
     }
   }, [location.search]);
+
+  // Debounced fetch for location suggestions
+  useEffect(() => {
+    const controller = new AbortController();
+    const q = locationQuery.trim();
+    if (!q) {
+      setLocationSuggestions([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setLocationLoading(true);
+      try {
+        const url = `http://yieldlink-api-six.vercel.app/api/location/suggest?query=${encodeURIComponent(q)}`;
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error(`Failed to fetch suggestions (${res.status})`);
+        const data = await res.json();
+        // Normalize to array of { name, latitude, longitude }
+        const pick = (x: any): Suggestion | null => {
+          if (!x) return null;
+          const name = x.name ?? x.label ?? x.display_name ?? x.title ?? x.text ?? x.city ?? x.place_name;
+          const lat = x.latitude ?? x.lat ?? x.y ?? x.center?.[1];
+          const lon = x.longitude ?? x.lng ?? x.lon ?? x.x ?? x.center?.[0];
+          if (!name || lat === undefined || lon === undefined) return null;
+          return { name: String(name), latitude: Number(lat), longitude: Number(lon) };
+        };
+        let suggestions: Suggestion[] = [];
+        if (Array.isArray(data)) suggestions = data.map(pick).filter(Boolean) as Suggestion[];
+        else if (data && Array.isArray(data.suggestions)) suggestions = data.suggestions.map(pick).filter(Boolean) as Suggestion[];
+        else if (data && Array.isArray(data.results)) suggestions = data.results.map(pick).filter(Boolean) as Suggestion[];
+        setLocationSuggestions(suggestions);
+        setShowLocationSuggestions(true);
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') setLocationSuggestions([]);
+      } finally {
+        setLocationLoading(false);
+      }
+    }, 300);
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [locationQuery]);
+
+  // Hide suggestions on outside click
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!suggestionBoxRef.current) return;
+      if (!suggestionBoxRef.current.contains(e.target as Node)) {
+        setShowLocationSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +99,19 @@ const Auth = () => {
         const phone = (form.elements.namedItem('phone') as HTMLInputElement)?.value || '';
         const email = (form.elements.namedItem('email') as HTMLInputElement)?.value || '';
         const password = (form.elements.namedItem('password') as HTMLInputElement)?.value || '';
-        await signup(name, phone, email, password);
+        if (!chosenLocation || chosenLocation.name.trim() !== locationQuery.trim()) {
+          toast({ title: 'Select a location', description: 'Please choose a suggested location so we can capture coordinates.', variant: 'destructive' });
+          setIsLoading(false);
+          return;
+        }
+        await signup(name, phone, email, password, {
+          name: chosenLocation.name,
+          latitude: chosenLocation.latitude,
+          longitude: chosenLocation.longitude,
+          // duplicates for backend compatibility
+          lat: chosenLocation.latitude,
+          lon: chosenLocation.longitude,
+        });
         toast({
           title: 'Welcome to YieldLink!',
           description: "You've successfully joined the platform.",
@@ -54,7 +129,6 @@ const Auth = () => {
       navigate('/dashboard');
     } catch (err: unknown) {
       let message = 'Please check your credentials and try again.';
-      // Custom error handling for common cases
       if (err instanceof Error) {
         if (/email.*exist|already.*used|already.*registered/i.test(err.message)) {
           message = 'Email already in use. Please use a different email.';
@@ -81,7 +155,7 @@ const Auth = () => {
       <Card className="w-full max-w-sm shadow-lg border-0">
         <div className="flex flex-col items-center mt-8">
           <Link to="/" >
-          <div className="flex items-center space-x-2 mb-2">
+          <div className="flex items-center space-x-2 mb-4">
             <Sprout className="w-7 h-7 text-[#22b14c]" />
             <span className="text-2xl font-bold text-[#22b14c] font-mont">YieldLink</span>
           </div>
@@ -104,7 +178,52 @@ const Auth = () => {
               </div>
               <div>
                 <Label htmlFor="location" className="text-black font-medium">Location</Label>
-                <Input id="location" placeholder="Enter your City, State." required className="mt-1" />
+                <div className="relative" ref={suggestionBoxRef}>
+                  <Input
+                    id="location"
+                    placeholder="Enter your City, State."
+                    required
+                    className="mt-1"
+                    value={locationQuery}
+                    onChange={(e) => {
+                      setLocationQuery(e.target.value);
+                      // Reset chosen location if user edits away
+                      if (!chosenLocation || e.target.value.trim() !== chosenLocation.name) {
+                        setChosenLocation(null);
+                      }
+                      if (e.target.value.trim().length > 0) setShowLocationSuggestions(true);
+                    }}
+                    onFocus={() => {
+                      if (locationSuggestions.length > 0) setShowLocationSuggestions(true);
+                    }}
+                    autoComplete="off"
+                  />
+                  {showLocationSuggestions && (locationSuggestions.length > 0 || locationLoading) && (
+                    <div className="absolute z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg max-h-56 overflow-auto">
+                      {locationLoading && (
+                        <div className="px-3 py-2 text-sm text-gray-500">Searching...</div>
+                      )}
+                      {!locationLoading && locationSuggestions.map((s, idx) => (
+                        <button
+                          type="button"
+                          key={`${s.name}-${idx}`}
+                          className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                          onClick={() => {
+                            setLocationQuery(s.name);
+                            setChosenLocation(s);
+                            console.log('Chosen location:', s);
+                            setShowLocationSuggestions(false);
+                          }}
+                        >
+                          {s.name}
+                        </button>
+                      ))}
+                      {!locationLoading && locationSuggestions.length === 0 && (
+                        <div className="px-3 py-2 text-sm text-gray-500">No matches</div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <Label htmlFor="phone" className="text-black font-medium">Phone Number</Label>
@@ -125,15 +244,6 @@ const Auth = () => {
               <Button type="submit" className="w-full bg-[#22b14c] hover:bg-[#1a8c39] text-white font-bold rounded-lg py-2 mt-2" disabled={isLoading}>
                 {isLoading ? 'Signing Up...' : 'Sign Up'}
               </Button>
-              {/* <div className="flex items-center my-4">
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="mx-2 text-gray-400 text-xs">or</span>
-                <div className="flex-1 h-px bg-gray-200" />
-              </div>
-              <Button type="button" variant="outline" className="w-full border-gray-300 flex items-center justify-center gap-2 font-semibold text-gray-700 bg-white">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-                Sign up with Google
-              </Button> */}
               <div className="text-center mt-4 text-sm">
                 Already have an account?{' '}
                 <button type="button" className="text-[#22b14c] font-semibold hover:underline" onClick={() => setMode('login')}>
@@ -154,17 +264,7 @@ const Auth = () => {
               <Button type="submit" className="w-full bg-[#22b14c] hover:bg-[#1a8c39] text-white font-bold rounded-lg py-2 mt-2" disabled={isLoading}>
                 {isLoading ? 'Signing In...' : 'Sign in'}
               </Button>
-              {/* <div className="flex items-center my-4">
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="mx-2 text-gray-400 text-xs">or</span>
-                <div className="flex-1 h-px bg-gray-200" />
-              </div>
-              <Button type="button" variant="outline" className="w-full border-gray-300 flex items-center justify-center gap-2 font-semibold text-gray-700 bg-white">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-                Continue with Google
-              </Button> */}
               <div className="flex flex-col items-center mt-4 text-sm">
-                {/* <button type="button" className="text-black font-semibold hover:underline mb-2">Forgot Password?</button> */}
                 <span>
                   Don't have an account?{' '}
                   <button type="button" className="text-[#22b14c] font-semibold hover:underline" onClick={() => setMode('signup')}>

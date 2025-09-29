@@ -1,6 +1,6 @@
 // src/context/AuthContext/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { AuthContextType, User } from "../AuthContext/authTypes";
+import { AuthContextType, User, LocationInfo } from "../AuthContext/authTypes";
 import { loginRequest, signupRequest } from "../AuthContext/authservice";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,8 +24,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("authUser", JSON.stringify(authUser));
   };
 
-  const signup = async (name: string, phone: string, email: string, password: string) => {
-    const data = await signupRequest(name, phone, email, password);
+  const signup = async (name: string, phone: string, email: string, password: string, location: LocationInfo) => {
+    const data = await signupRequest(name, phone, email, password, location);
     const authUser: User = { ...data.user, token: data.token };
     setUser(authUser);
     localStorage.setItem("authUser", JSON.stringify(authUser));

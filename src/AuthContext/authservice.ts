@@ -25,14 +25,20 @@ export async function loginRequest(identifier: string, password: string) {
   return await res.json(); // expect { token, user }
 }
 
-export async function signupRequest(name: string, phone: string, email: string, password: string) {
+export async function signupRequest(
+  name: string,
+  phone: string,
+  email: string,
+  password: string,
+  location: { name: string; latitude: number; longitude: number }
+) {
   const res = await fetch(`${BASE_URL}/auth/signup`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify({ name, phone, email, password }),
+    body: JSON.stringify({ name, phone, email, password, location }),
   });
 
   if (!res.ok) {

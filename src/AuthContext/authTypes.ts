@@ -6,10 +6,19 @@ export interface User {
   token: string;
 }
 
+export interface LocationInfo {
+  name: string;
+  latitude: number;
+  longitude: number;
+  // Optional duplicates for backend compatibility
+  lat?: number;
+  lon?: number;
+}
+
 export interface AuthContextType {
   user: User | null;
   login: (identifier: string, password: string) => Promise<void>;
-  signup: (name: string, phone: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, phone: string, email: string, password: string, location: LocationInfo) => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
