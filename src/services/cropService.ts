@@ -248,6 +248,7 @@ export async function getMarketplaceListings(params?: { cropName?: string; locat
     },
     cache: 'no-store' as RequestCache,
   });
+  
 
   if (!res.ok) {
     let message = `Failed to get marketplace listings (${res.status})`;
