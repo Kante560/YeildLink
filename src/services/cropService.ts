@@ -1,3 +1,6 @@
+import { getAuthHeader } from "@/utils/authUtils";
+export const BASE_URL = "https://yieldlink-api-six.vercel.app/api";
+
 export async function getMyMarketplaceListings(): Promise<MarketplaceItem[]> {
   const res = await fetch(`${BASE_URL}/marketplace/my`, {
     method: "GET",
@@ -48,10 +51,6 @@ export async function deleteMarketplaceListing(id: string | number): Promise<voi
     } catch {}
     throw new Error(message);
   }
-}
-import { getAuthHeader } from "@/utils/authUtils";
-
-const BASE_URL = "https://yieldlink-api-six.vercel.app/api";
 
 export interface ApiCrop {
   id: number | string;

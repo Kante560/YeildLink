@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Sprout } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { BASE_URL } from '@/services/cropService';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -39,13 +40,12 @@ const Auth = () => {
     const controller = new AbortController();
     const q = locationQuery.trim();
     if (!q) {
-      setLocationSuggestions([]);
       return;
     }
     const timer = setTimeout(async () => {
       setLocationLoading(true);
       try {
-        const url = `https://yieldlink-api-six.vercel.app/api/location/suggest?query=${encodeURIComponent(q)}`;
+        const url = `${BASE_URL}/location/suggest?query=${encodeURIComponent(q)}`;
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error(`Failed to fetch suggestions (${res.status})`);
         const data = await res.json();
